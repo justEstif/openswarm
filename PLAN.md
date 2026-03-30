@@ -38,10 +38,10 @@
 
 | # | Deliverable | Status | Notes |
 |---|---|---|---|
-| 1.1 | `internal/agent` — `Register`, `List`, `Get`, `Deregister` | 🔄 | Small surface. Needed by task (assignment), msg (routing), worktree (binding). |
-| 1.2 | `internal/task` — `Add`, `List`, `Get`, `Update`, `Assign`, `Claim`, `Done`, `Fail`, `Cancel`, `Block`, `Unblock`, `Check`, `Prompt` | 🔄 | Most logic-heavy package. Single `tasks.json` + `flock()`. ETag optimistic locking. |
-| 1.3 | `swarm agent` commands — `register`, `list`, `get`, `deregister` | 🔄 | Thin cobra handlers (~15 lines each). |
-| 1.4 | `swarm task` commands — `add`, `list`, `get`, `update`, `assign`, `claim`, `done`, `fail`, `cancel`, `block`, `check`, `prompt` | 🔄 | Thin cobra handlers. |
+| 1.1 | `internal/agent` — `Register`, `List`, `Get`, `Deregister` | ✅ | Small surface. Needed by task (assignment), msg (routing), worktree (binding). |
+| 1.2 | `internal/task` — `Add`, `List`, `Get`, `Update`, `Assign`, `Claim`, `Done`, `Fail`, `Cancel`, `Block`, `Unblock`, `Check`, `Prompt` | ✅ | Most logic-heavy package. Single `tasks.json` + `flock()`. ETag optimistic locking. |
+| 1.3 | `swarm agent` commands — `register`, `list`, `get`, `deregister` | ✅ | Thin cobra handlers (~15 lines each). |
+| 1.4 | `swarm task` commands — `add`, `list`, `get`, `update`, `assign`, `claim`, `done`, `fail`, `cancel`, `block`, `check`, `prompt` | ✅ | Thin cobra handlers. |
 
 **Gate:** `swarm init && swarm agent register alice researcher && swarm task add "build the thing" && swarm task claim <id> --as alice && swarm task done <id>` works end-to-end, human and `--json` output both correct.
 

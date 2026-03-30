@@ -33,6 +33,8 @@ func init() {
 
 	rootCmd.AddCommand(commands.InitCmd)
 	rootCmd.AddCommand(commands.VersionCmd)
+	rootCmd.AddCommand(commands.AgentCmd)
+	rootCmd.AddCommand(commands.TaskCmd)
 }
 
 // mustRoot is the middleware used by every command handler.
