@@ -87,8 +87,8 @@
 
 | # | Deliverable | Status | Notes |
 |---|---|---|---|
-| 4.1 | `internal/worktree` — `New`, `List`, `Merge`, `Clean`, `CleanAll` | ⬜ | Depends on `swarmfs`, `events`, `agent`. |
-| 4.2 | `swarm worktree` commands — `new`, `list`, `merge`, `clean` | ⬜ | Thin cobra handlers. |
+| 4.1 | `internal/worktree` — `New`, `List`, `Merge`, `Clean`, `CleanAll` | 🔄 | Depends on `swarmfs`, `events`, `agent`. |
+| 4.2 | `swarm worktree` commands — `new`, `list`, `merge`, `clean` | 🔄 | Thin cobra handlers. |
 
 **Gate:** `swarm worktree new --branch feature/x --agent alice` creates a worktree at a canonical path and records it in `worktrees.json`.
 
@@ -100,9 +100,9 @@
 
 | # | Deliverable | Status | Notes |
 |---|---|---|---|
-| 5.1 | `swarm events tail` | ⬜ | `events.Tail()` already works. This is the streaming CLI reader + `--filter` flag. |
-| 5.2 | `swarm status` | ⬜ | Aggregator: calls `task.List`, `msg.UnreadCount`, `agent.List`, `pane.List`. Intentionally thin. |
-| 5.3 | `swarm prompt` | ⬜ | Concatenates per-subsystem prompts for agent priming. Calls `task.Prompt()`. |
+| 5.1 | `swarm events tail` | 🔄 | `events.Tail()` already works. This is the streaming CLI reader + `--filter` flag. |
+| 5.2 | `swarm status` | 🔄 | Aggregator: calls `task.List`, `msg.UnreadCount`, `agent.List`, `pane.List`. Intentionally thin. |
+| 5.3 | `swarm prompt` | 🔄 | Concatenates per-subsystem prompts for agent priming. Calls `task.Prompt()`. |
 
 ---
 
