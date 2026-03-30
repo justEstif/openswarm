@@ -1,5 +1,5 @@
 # Build output
-swarm
+/swarm
 dist/
 
 # Go
