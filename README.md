@@ -53,6 +53,32 @@ All state lives under `.swarm/` in the project root (or `$SWARM_DIR`).
 - [`docs/NOTES.md`](docs/NOTES.md) — decisions log and research synthesis
 - [`docs/research/`](docs/research/) — raw research outputs
 
+## Installation
+
+### npm (recommended)
+
+```bash
+npm install -g openswarm
+```
+
+### Homebrew (coming soon)
+
+```bash
+brew install justEstif/tap/openswarm
+```
+
+### Direct download
+
+Download the binary for your platform from [GitHub Releases](https://github.com/justEstif/openswarm/releases) and add it to your `PATH`.
+
+### Build from source
+
+```bash
+git clone https://github.com/justEstif/openswarm
+cd openswarm
+go install ./cmd/swarm
+```
+
 ## Development
 
 ```bash

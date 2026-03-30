@@ -1,0 +1,24 @@
+{
+  "name": "openswarm",
+  "version": "0.1.0",
+  "description": "Multi-agent task orchestration CLI — swarm messaging, tasks, panes, and worktrees",
+  "keywords": ["ai", "agents", "swarm", "cli", "multi-agent"],
+  "homepage": "https://github.com/justEstif/openswarm",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/justEstif/openswarm"
+  },
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "bin": {
+    "swarm": "bin/swarm.js"
+  },
+  "scripts": {
+    "postinstall": "node postinstall.js"
+  },
+  "files": [
+    "bin/",
+    "postinstall.js",
+    "README.md"
+  ]
+}
