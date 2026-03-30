@@ -1,0 +1,32 @@
+{
+  "agent_end": true,
+  "agent": "delta",
+  "tools_researched": ["dmux", "new-tools-2025-2026"],
+  "tools_found": [
+    "dmux (standardagents/dmux)",
+    "CLI Agent Orchestrator / CAO (awslabs)",
+    "Composio Agent Orchestrator / ao (ComposioHQ)",
+    "agentmux (agentmux.app)",
+    "cmux (manaflow-ai)",
+    "multiclaude (dlorenc)",
+    "NTM Named Tmux Manager (Dicklesworthstone)",
+    "agent-flow (patoles)"
+  ],
+  "key_findings": [
+    "dmux solves worktree isolation + agent launching with a tmux-native TUI; completely human-driven, no automation or API surface",
+    "dmux gaps: no automated coordination, no CI reaction, no programmatic control, no inter-agent communication, tmux-only",
+    "git worktrees as isolation primitive is now universal — every serious 2025-2026 tool uses them",
+    "tmux remains dominant runtime but there is growing pressure for zellij/Docker/K8s support (multiple Claude Code GitHub issues)",
+    "Agent-agnostic design is the norm — Claude Code, Codex, Gemini CLI treated as interchangeable plug-ins",
+    "Markdown files as agent role definitions is a recurring pattern (CAO, multiclaude, NTM)",
+    "CI-as-feedback-loop is an emerging pattern: Composio AO and multiclaude use CI pass/fail to close coordination loops automatically",
+    "Notification UX is a real pain point — dmux and cmux both prominently feature attention/notification systems",
+    "NTM is the most comprehensive local control plane: adds work intelligence, Agent Mail, safety policy, REST/WS API, durable state — heavyweight but powerful",
+    "cmux (macOS native) represents the 'terminal as primitive' philosophy: no imposed workflow, composable via CLI/socket API + built-in scriptable browser",
+    "multiclaude's 'Brownian Ratchet' philosophy (redundant work is cheap; CI is the ratchet) is a novel framing for swarm coordination",
+    "Composio AO's plugin architecture (8 swappable slots) is the most extensible design found",
+    "agent-flow is a complementary visualization layer — makes agent execution visible as node graph, works alongside any orchestrator",
+    "No tool handles: cross-machine agent distribution, output aggregation/diffing across agents, token cost tracking, or native zellij support"
+  ],
+  "output_file": "research/findings-delta.md"
+}

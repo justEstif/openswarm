@@ -1,0 +1,28 @@
+{
+  "agent_end": true,
+  "agent": "gamma",
+  "tools_researched": ["workmux", "ntm"],
+  "key_findings": [
+    "workmux backend detection uses env-var cascade: $WORKMUX_BACKEND (override) → $TMUX (tmux) → $WEZTERM_PANE (wezterm) → $ZELLIJ (zellij) → $KITTY_WINDOW_ID (kitty) → default tmux. Pure function resolve_backend() separated for testability. Directly adoptable for openswarm.",
+    "workmux Zellij support requires building Zellij from source (unreleased features: --pane-id targeting, close-tab-by-id, go-to-tab-by-id). Not production-ready as of March 2026.",
+    "workmux is Rust with a Multiplexer trait abstraction (src/multiplexer/mod.rs). ~40 method interface: create_window, split_pane, send_keys, capture_pane, set_status, create_handshake, etc. Named-pipe handshake pattern for shell startup synchronization.",
+    "workmux is git-worktree-centric (one worktree per agent/task), providing file isolation between parallel agents. NTM has no such isolation — agents share the working tree.",
+    "NTM is tmux-only (intentionally), Go binary, REST/SSE/WebSocket API via 'ntm serve', machine-readable '--robot-*' flag surface. Named pane pattern: <project>__<agent>_<number>.",
+    "NTM has a safety system (policy rules, approval workflows, destructive command blocking) and durable state (checkpoints, timelines, audit logs, pipeline YAML with resume).",
+    "NTM context rotation: monitors token usage estimates, auto-rotates agents at 95% threshold with handoff summary. First-class primitive for long-running swarms.",
+    "NTM work assignment strategies: balanced, speed, quality, dependency — integrates with 'br'/'bv' work graph tools for intelligent task routing.",
+    "Both tools converge on tmux as the only battle-tested backend. WezTerm/Kitty/Zellij are experimental in workmux; absent in NTM.",
+    "For openswarm: adopt workmux's env-var backend detection, workmux's Multiplexer trait pattern, NTM's robot-mode JSON surface design, NTM's REST/WebSocket API model, and workmux's git-worktree isolation concept."
+  ],
+  "sources_consulted": [
+    "https://github.com/raine/workmux",
+    "https://workmux.raine.dev/guide/",
+    "https://github.com/raine/workmux/blob/main/docs/guide/wezterm.md",
+    "https://github.com/raine/workmux/blob/main/docs/guide/zellij.md",
+    "https://github.com/raine/workmux/blob/main/src/multiplexer/mod.rs",
+    "https://github.com/raine/workmux/blob/main/CHANGELOG.md",
+    "https://github.com/Dicklesworthstone/ntm",
+    "https://github.com/Dicklesworthstone/agent_flywheel_clawdbot_skills_and_integrations/blob/main/skills/ntm/SKILL.md",
+    "https://github.com/Dicklesworthstone/ntm/blob/main/PLAN_TO_ADD_WEB_UI_AND_REST_AND_WEBSOCKET_API_LAYERS_TO_NTM__GEMINI.md"
+  ]
+}

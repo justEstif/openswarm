@@ -1,0 +1,19 @@
+{
+  "agent_end": true,
+  "agent": "alpha",
+  "tools_researched": ["conductor", "vibe-kanban"],
+  "key_findings": [
+    "Both tools converge on git worktrees as the isolation primitive — this is the de-facto standard for parallel agent execution",
+    "Neither tool supports programmatic cross-workspace coordination (supervisor → worker agent routing) — this is the primary gap for OpenSwarm",
+    "Conductor is Mac-only, closed-source, GUI-native; no tmux/zellij; supports only Claude Code + Codex; strong UX polish but limited ecosystem",
+    "Vibe Kanban is open-source (Bloop AI), cross-platform, browser-based; agent-agnostic (10+ agents); adds kanban board as the coordination layer; no terminal/TUI mode",
+    "Conductor's conductor.json pattern (repo-committed setup/run scripts) is a reusable design primitive for bootstrapping workspaces reproducibly",
+    "Vibe Kanban exposes its own MCP server (npx vibe-kanban --mcp), enabling meta-orchestration where external agents can create/manage workspaces via MCP tools",
+    "Neither tool uses tmux or zellij — isolation is purely git-worktree-based with each tool managing its own UI/process layer",
+    "Conductor has checkpoints (mid-session rollback); Vibe Kanban does not — git history is the only rollback in VK",
+    "Both tools require human-authored task descriptions / issues; neither auto-decomposes a high-level spec into parallelizable sub-tasks",
+    "Security lesson from Conductor: GitHub OAuth (broad permissions) triggered backlash; fine-grained GitHub App auth is required from day one",
+    "The shared gap most relevant to OpenSwarm: no DAG-style task dependency, no supervisor-agent model, no structured output validation, no programmatic agent assignment"
+  ],
+  "findings_file": "research/findings-alpha.md"
+}

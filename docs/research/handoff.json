@@ -1,0 +1,52 @@
+{
+  "agent_end": true,
+  "generated": "2026-03-29",
+  "report": "research/tools-landscape.md",
+  "subagent_findings": [
+    "research/findings-alpha.md",
+    "research/findings-beta.md",
+    "research/findings-gamma.md",
+    "research/findings-delta.md"
+  ],
+  "key_findings": [
+    "UNIVERSAL ISOLATION PRIMITIVE: Every serious tool (Conductor, Vibe Kanban, Claude Squad, Gastown, workmux, dmux, multiclaude) converges on git worktrees as the agent isolation primitive. This is settled design space.",
+    "TMUX DOMINANCE + ZELLIJ GAP: Every tool with multiplexer support is tmux-only. Zellij support is universally absent or broken (workmux Zellij backend requires unreleased Zellij features as of March 2026). This is swarm's primary structural gap to fill.",
+    "BACKEND DETECTION: Adopt workmux's 5-level env-var cascade verbatim: $SWARM_BACKEND → $TMUX → $WEZTERM_PANE → $ZELLIJ → $KITTY_WINDOW_ID → fallback:tmux. It is correct, pure-function, and fully tested.",
+    "NO TOOL HAS A UNIFIED CLI: Tools are either GUIs (Conductor, Vibe Kanban), TUIs (Claude Squad, dmux), or heavy orchestrators (Gastown, NTM). None provide a composable subcommand CLI (`swarm agent`, `swarm task`, etc.) with JSON-first output.",
+    "FILE-BACKED STATE IS THE DIFFERENTIATOR: Tools have either no persistence (Claude Squad) or require Dolt SQL engine (Gastown). .swarm/ flat-file state is inspectable, scriptable, grep-able, and backup-friendly with zero external dependencies.",
+    "BEADS PATTERN (Gastown) IS THE STRONGEST TASK PRIMITIVE: Dependency-aware task graph with atomic claim, hierarchical IDs, audit trail, JSON output, and `bd ready` for agent pickup. The `bd` binary is standalone and directly reusable. Adopt without Dolt by using flat JSONL files.",
+    "TASK GRAPH AS ROUTING LAYER: Most tools require a human (Claude Squad, dmux) or a dedicated LLM coordinator (Gastown Mayor) for task routing. swarm task's dependency graph makes the graph itself the router — agents claim tasks via `swarm task claim`, eliminating hardcoded supervisors.",
+    "MCP AS INTEGRATION BUS (Vibe Kanban + CAO): Vibe Kanban exposes a local MCP server allowing external agents to manage issues/workspaces. CAO uses MCP for supervisor↔worker messaging. swarm should expose `swarm events` and `swarm task` via MCP.",
+    "CI AS FEEDBACK LOOP (Composio AO + multiclaude): `ci-failed → send-to-agent` reaction and the 'Brownian Ratchet' (CI as one-way forward gate) are the two strongest patterns for autonomous closed-loop operation. swarm events should emit CI signals.",
+    "ROBOT MODE / JSON-FIRST API (NTM): NTM's --robot-* flags and ntm serve (REST/SSE/WebSocket) are the right design for agents-controlling-agents. Every swarm subcommand should support --json flag and emit structured events to the swarm events SSE stream.",
+    "NOTIFICATION MODEL IS UNSOLVED: dmux (macOS notifications) and cmux (notification rings) both prominently feature agent-attention alerting. swarm events should emit structured 'needs_attention' events consumable by OS notification hooks.",
+    "AGENT IDENTITY AND CONTEXT CONTINUITY (Gastown seance): Agents logging to .events.jsonl per-session and a `swarm msg history <agent>` command for querying predecessor context is the lightweight alternative to Dolt-backed persistent identity.",
+    "MULTIPLEXER TRAIT ABSTRACTION: workmux's Rust trait for multiplexer backends (~40 methods: create_window, split_pane, send_keys, capture_pane, set_status, create_handshake, setup_panes) is the right architecture. swarm pane should model this as a Go interface.",
+    "HANDSHAKE PATTERN FOR RACE CONDITIONS: workmux's named-pipe handshake (handshake.rs) synchronizes shell startup before injecting commands — solves the 'pane not ready' race condition common in tmux/zellij automation.",
+    "AGENT-AGNOSTIC FROM DAY ONE: Vibe Kanban (10+ agents), dmux (11 agents), CAO (7 agents) all treat the agent as a configurable subprocess. swarm agent should have a profiles section in .swarm/config.yaml with name + command + args."
+  ],
+  "tools_researched": [
+    "conductor (meltylabs) — https://github.com/meltylabs/conductor-releases",
+    "vibe-kanban (BloopAI) — https://github.com/BloopAI/vibe-kanban",
+    "claude-squad (smtg-ai) — https://github.com/smtg-ai/claude-squad",
+    "gastown (steveyegge) — https://github.com/steveyegge/gastown",
+    "beads (steveyegge) — https://github.com/steveyegge/beads",
+    "workmux (raine) — https://github.com/raine/workmux",
+    "ntm (Dicklesworthstone) — https://github.com/Dicklesworthstone/ntm",
+    "dmux (standardagents) — https://github.com/standardagents/dmux",
+    "cao (awslabs) — https://github.com/awslabs/cli-agent-orchestrator",
+    "composio-ao (ComposioHQ) — https://github.com/ComposioHQ/agent-orchestrator",
+    "agentmux — https://agentmux.app/",
+    "cmux (manaflow-ai) — https://github.com/manaflow-ai/cmux",
+    "multiclaude (dlorenc) — https://github.com/dlorenc/multiclaude",
+    "agent-flow (patoles) — https://github.com/patoles/agent-flow"
+  ],
+  "swarm_subcommand_map": {
+    "swarm_agent": "Inspired by: Claude Squad profiles + Gastown polecats. Named persistent agent sessions; profile config in .swarm/config.yaml; any agent runtime; persistent identity via .swarm/agents/<name>/.",
+    "swarm_task": "Inspired by: Gastown beads (bd) + Vibe Kanban issues. Dependency graph, atomic claim, bd-style `swarm task ready`, hierarchical IDs, JSON output, lifecycle (backlog→claimed→done).",
+    "swarm_msg": "Inspired by: NTM robot-mode + Gastown seance. Structured messages to/from agents. .events.jsonl per agent. `swarm msg send <agent>`, `swarm msg history <agent>`, `swarm msg broadcast`.",
+    "swarm_pane": "Inspired by: workmux multiplexer trait + NTM named panes. Backend-agnostic pane lifecycle. `swarm pane create`, `swarm pane send`, `swarm pane kill`. <project>__<agent>_<N> naming convention.",
+    "swarm_events": "Inspired by: NTM REST/SSE + agent-flow JSONL. SSE stream of all structured swarm events. `swarm events tail`, REST /api/v1/events, JSONL log at .swarm/events.jsonl, agent-flow-compatible for visualization."
+  },
+  "critical_warning": "Zellij backend support in workmux requires unreleased Zellij features (--pane-id targeting, close-tab-by-id, go-to-tab-by-id). Do not promise production Zellij support at swarm launch. Implement tmux fully first; design the interface so Zellij drops in cleanly later."
+}

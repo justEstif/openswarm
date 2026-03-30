@@ -1,0 +1,15 @@
+{
+  "agent_end": true,
+  "agent": "beta",
+  "tools_researched": ["claude-squad", "gastown"],
+  "key_findings": [
+    "Claude Squad (smtg-ai/claude-squad): tmux-only TUI dashboard for human-supervised multi-agent sessions; uses git worktrees for isolation; binary `cs`; config at ~/.claude-squad/config.json with profiles array; no orchestration, no persistent state, no task system — pure human-in-the-loop review tool",
+    "Gastown (steveyegge/gastown): full multi-agent orchestration framework; tmux-only; Mayor→Convoy→Beads→Polecats hierarchy; persistent state via Dolt (versioned SQL); binary `gt` + separate `bd` (beads) CLI; agents have persistent identity across ephemeral sessions; Witness/Deacon/Dogs three-tier watchdog; seance for session continuity via .events.jsonl",
+    "Beads (`bd`) is a standalone composable tool installable independently — Dolt-backed dependency graph task tracker with atomic claim, audit trail, JSON output, hierarchical IDs (prefix-5char), multi-agent safe. The strongest reusable primitive from either tool.",
+    "BOTH tools are tmux-only — neither supports zellij. This is the structural gap OpenSwarm (zellij-native) fills.",
+    "ZFC Principle (Gastown): infrastructure layer does data transport; LLM agents make decisions — no stderr-parsing for branching logic. Propulsion Principle: agents must execute on task discovery without human confirmation. Both principles directly applicable to OpenSwarm design.",
+    "Convoy pattern: batching related beads into a trackable unit (epic/sprint) with lifecycle snapshots (open/staged/closed) is a clean abstraction for progress reporting at scale.",
+    "Claude Squad gap: no orchestration, no persistent state, no agent coordination, no watchdog — purely a human supervision dashboard",
+    "Gastown gap: heavy stack (Dolt + Go 1.25 + beads + tmux), high setup complexity, Mayor still requires human briefing, formulas embedded in binary (not user-extensible without recompile)"
+  ]
+}

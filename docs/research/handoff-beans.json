@@ -1,0 +1,39 @@
+{
+  "agent_end": true,
+  "borrow_list": [
+    "--quiet / -q flag on list: prints IDs only, one per line — trivial to add, very useful for piping",
+    "--ready / --actionable compound filter: not blocked + not in terminal state + not in-progress — the single most important filter for agent 'what should I work on?' workflows",
+    "machine-readable error codes in --json: 'code': 'NOT_FOUND' / 'CONFLICT' / 'VALIDATION_ERROR' etc. — agents need to distinguish error types programmatically",
+    "cancelled status alongside failed: semantically distinct — cancelled = intentional abandonment, failed = unexpected error. Both matter for agent coordination.",
+    "5-level priority (critical/high/normal/low/deferred): deferred explicitly means 'skip this for now' — agents should exclude deferred from --ready filter",
+    "--exclude-status / --no-status exclusion variants: clean pattern for 'show me everything except X' without enumerating all values",
+    "--full flag on list --json: exclude output field by default to save agent tokens; --full includes it",
+    "--sort priority|created|updated|status on list: lets agents rank tasks by what matters to them",
+    "swarm task show <id> [id...]: dedicated detailed view command with --json, --output-only; separate from list — agents scan with list, read detail with show",
+    "swarm task update <id> --output-append 'text': append to output without full rewrite — agents can log progress incrementally",
+    "swarm task prompt: outputs agent-priming instructions (all commands, valid values, workflow guidance) for injection into agent context via hooks",
+    "tags: []string on task schema + --tag / --no-tag filter: free-form labeling without schema changes — add tag field to tasks.json",
+    "swarm task check [--fix]: validates blocked_by references are valid task IDs, auto-removes stale ones — essential for long-running multi-agent environments",
+    "bare JSON objects for reads vs. envelope for mutations: list --json emits array, show --json emits object, add/update --json emits {success, task, message}",
+    "SWARM_TASKS_PATH env var: override tasks file path without --file flag — useful for testing and multiple swarms",
+    "rm warns about incoming blocked_by references and offers to clean them up: prevents dangling references",
+    "blocked-word filter for ID generation: check NanoIDs against offensive word list before use",
+    "ETag / --if-match on update: content hash per task, update fails if task changed since last read — agent-level race detection on top of flock() mutex",
+    "draft status: 'needs refinement before it can be worked on' — useful planning status to exclude from --ready filter"
+  ],
+  "skip_list": [
+    "one-file-per-task storage — we've decided on tasks.json with flock(); simpler, sufficient for our use case",
+    "GraphQL query interface — overkill; --json + jq covers 95% of agent use cases",
+    "YAML front-matter format — our JSON is simpler for programmatic access by agents",
+    "TUI (beans-tui) — out of scope for swarm task",
+    "Web UI / beans-serve — out of scope",
+    "Git worktree integration — out of scope; our model is file-backed shared state across agents",
+    "Type hierarchy (milestone/epic/feature/task) — too complex for agent task coordination, adds cognitive overhead",
+    "roadmap generation — out of scope",
+    "Bleve full-text search — heavy dependency; simple substring match on title+output is sufficient for MVP",
+    "per-project config file (.beans.yml) — .swarm/tasks/tasks.json is self-contained",
+    "fractional ordering (order field) — not needed until we have a TUI or explicit ordering requirement",
+    "OpenCode/Claude hooks integration — agent-specific; lives in agent integration layer, not swarm task itself",
+    "archive subdirectory — lower priority; a simple archived: bool field on tasks.json is simpler than split files"
+  ]
+}

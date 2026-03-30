@@ -1,0 +1,30 @@
+# Build output
+swarm
+dist/
+
+# Go
+*.test
+*.out
+coverage.out
+
+# Nix
+result
+result-*
+.direnv/
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Swarm state (project-local, never committed)
+.swarm/
+
+# Orchestrator scratch (internal agent workspaces)
+.orchestrator/
