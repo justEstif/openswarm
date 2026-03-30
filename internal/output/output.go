@@ -26,7 +26,7 @@ import (
 // Callers should test with errors.As(err, &SwarmError{}) rather than a type
 // assertion, so wrapping survives in the future.
 type SwarmError struct {
-	Code    string `json:"code"`    // NOT_FOUND | CONFLICT | VALIDATION | IO_ERROR | LOCKED
+	Code    string `json:"code"` // NOT_FOUND | CONFLICT | VALIDATION | IO_ERROR | LOCKED
 	Message string `json:"message"`
 }
 
@@ -36,11 +36,11 @@ func (e *SwarmError) Error() string {
 
 // Convenience constructors — prefer these over creating SwarmError literals.
 
-func ErrNotFound(msg string) *SwarmError  { return &SwarmError{Code: "NOT_FOUND", Message: msg} }
-func ErrConflict(msg string) *SwarmError  { return &SwarmError{Code: "CONFLICT", Message: msg} }
+func ErrNotFound(msg string) *SwarmError   { return &SwarmError{Code: "NOT_FOUND", Message: msg} }
+func ErrConflict(msg string) *SwarmError   { return &SwarmError{Code: "CONFLICT", Message: msg} }
 func ErrValidation(msg string) *SwarmError { return &SwarmError{Code: "VALIDATION", Message: msg} }
-func ErrIO(msg string) *SwarmError        { return &SwarmError{Code: "IO_ERROR", Message: msg} }
-func ErrLocked(msg string) *SwarmError    { return &SwarmError{Code: "LOCKED", Message: msg} }
+func ErrIO(msg string) *SwarmError         { return &SwarmError{Code: "IO_ERROR", Message: msg} }
+func ErrLocked(msg string) *SwarmError     { return &SwarmError{Code: "LOCKED", Message: msg} }
 
 // ─── Output functions ────────────────────────────────────────────────────────
 

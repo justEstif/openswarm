@@ -76,10 +76,17 @@ var worktreeListCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		root, _ := mustRoot(cmd)
 		wts, err := worktree.List(root)
-		if err != nil { output.PrintError(err, jsonFlag(cmd)); return nil }
-		if jsonFlag(cmd) { return output.Print(wts, true) }
+		if err != nil {
+			output.PrintError(err, jsonFlag(cmd))
+			return nil
+		}
+		if jsonFlag(cmd) {
+			return output.Print(wts, true)
+		}
 		rows := make([]worktreeListRow, len(wts))
-		for i, wt := range wts { rows[i] = toWorktreeRow(wt) }
+		for i, wt := range wts {
+			rows[i] = toWorktreeRow(wt)
+		}
 		return output.Print(rows, false)
 	},
 }
@@ -112,10 +119,18 @@ var worktreeMergeCmd = &cobra.Command{
 		squash, _ := cmd.Flags().GetBool("squash")
 		deleteBranch, _ := cmd.Flags().GetBool("delete-branch")
 		wt, err := worktree.Get(root, args[0])
-		if err != nil { output.PrintError(err, jsonFlag(cmd)); return nil }
+		if err != nil {
+			output.PrintError(err, jsonFlag(cmd))
+			return nil
+		}
 		opts := worktree.MergeOpts{Squash: squash, DeleteBranch: deleteBranch}
-		if err := worktree.Merge(root, args[0], opts); err != nil { output.PrintError(err, jsonFlag(cmd)); return nil }
-		if jsonFlag(cmd) { return output.Print(map[string]string{"id": args[0], "branch": wt.Branch}, true) }
+		if err := worktree.Merge(root, args[0], opts); err != nil {
+			output.PrintError(err, jsonFlag(cmd))
+			return nil
+		}
+		if jsonFlag(cmd) {
+			return output.Print(map[string]string{"id": args[0], "branch": wt.Branch}, true)
+		}
 		fmt.Fprintf(cmd.OutOrStdout(), "Merged worktree %s (branch: %s)\n", args[0], wt.Branch)
 		return nil
 	},

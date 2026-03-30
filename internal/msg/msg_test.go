@@ -358,7 +358,7 @@ func TestClear_NoReadMessagesReturnsZero(t *testing.T) {
 	root := newTestRoot(t)
 	registerAgent(t, root, "leo")
 
-	msg.Send(root, "bot", "leo", "unread", "") //nolint:errcheck
+	msg.Send(root, "bot", "leo", "unread", "")  //nolint:errcheck
 	msg.Send(root, "bot", "leo", "unread2", "") //nolint:errcheck
 
 	n, err := msg.Clear(root, "leo")

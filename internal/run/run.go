@@ -42,13 +42,13 @@ const (
 type Run struct {
 	ID        string     `json:"id"`
 	Name      string     `json:"name"`
-	Cmd       string     `json:"cmd"`               // full command string as passed
-	Backend   string     `json:"backend"`           // b.Name()
-	PaneID    string     `json:"pane_id"`           // string form of pane.PaneID
+	Cmd       string     `json:"cmd"`     // full command string as passed
+	Backend   string     `json:"backend"` // b.Name()
+	PaneID    string     `json:"pane_id"` // string form of pane.PaneID
 	Status    RunStatus  `json:"status"`
 	ExitCode  int        `json:"exit_code"`
-	Output    string     `json:"output,omitempty"`  // captured via Capture() at exit
-	Complete  bool       `json:"complete"`          // true if <promise>COMPLETE</promise> in output
+	Output    string     `json:"output,omitempty"` // captured via Capture() at exit
+	Complete  bool       `json:"complete"`         // true if <promise>COMPLETE</promise> in output
 	StartedAt time.Time  `json:"started_at"`
 	EndedAt   *time.Time `json:"ended_at,omitempty"`
 }

@@ -98,13 +98,18 @@ func Append(root *swarmfs.Root, eventType, source, ref string, data any) error {
 
 // ─── Tail ─────────────────────────────────────────────────────────────────────
 
-const pollInterval = 200 * time.Millisecond
+const defaultPollInterval = 200 * time.Millisecond
 
 // Tail streams events from events.jsonl.
 // If filter is non-empty, only events whose Type contains filter are emitted.
-// It reads all existing lines first, then polls for new lines every 200 ms.
+// It reads all existing lines first, then polls for new lines at the given
+// interval (0 uses the 200 ms default).
 // The returned channel is closed when ctx is cancelled.
-func Tail(ctx context.Context, root *swarmfs.Root, filter string) (<-chan Event, error) {
+func Tail(ctx context.Context, root *swarmfs.Root, filter string, interval ...time.Duration) (<-chan Event, error) {
+	pollInterval := defaultPollInterval
+	if len(interval) > 0 && interval[0] > 0 {
+		pollInterval = interval[0]
+	}
 	path := root.EventsPath()
 
 	if err := touchFile(path); err != nil {
@@ -139,6 +144,31 @@ func Tail(ctx context.Context, root *swarmfs.Root, filter string) (<-chan Event,
 	}()
 
 	return ch, nil
+}
+
+// Last reads all matching events from the log once (no follow) and returns
+// the last n. If n <= 0 all events are returned.
+func Last(root *swarmfs.Root, filter string, n int) ([]Event, error) {
+	path := root.EventsPath()
+	if err := touchFile(path); err != nil {
+		return nil, fmt.Errorf("events: last: %w", err)
+	}
+
+	ch := make(chan Event, 512)
+	ctx := context.Background()
+	if _, err := drainFrom(path, 0, filter, ch, ctx); err != nil {
+		return nil, fmt.Errorf("events: last drain: %w", err)
+	}
+	close(ch)
+
+	var all []Event
+	for e := range ch {
+		all = append(all, e)
+	}
+	if n > 0 && len(all) > n {
+		all = all[len(all)-n:]
+	}
+	return all, nil
 }
 
 // drainFrom reads complete JSON lines from path starting at byteOffset.

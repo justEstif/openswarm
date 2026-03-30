@@ -38,8 +38,8 @@ import (
 // Message is a single message in an agent's inbox.
 type Message struct {
 	ID        string    `json:"id"`
-	From      string    `json:"from"`               // sender agent ID or name
-	To        string    `json:"to"`                 // recipient agent ID
+	From      string    `json:"from"` // sender agent ID or name
+	To        string    `json:"to"`   // recipient agent ID
 	Subject   string    `json:"subject"`
 	Body      string    `json:"body"`
 	ReplyTo   string    `json:"reply_to,omitempty"` // ID of message being replied to

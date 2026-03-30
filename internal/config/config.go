@@ -19,7 +19,8 @@ import (
 type Config struct {
 	TeamName      string         `toml:"team_name"`
 	DefaultAgent  string         `toml:"default_agent"`
-	Backend       string         `toml:"backend"` // "auto" | "tmux" | "zellij" | "wezterm" | "kitty"
+	Backend       string         `toml:"backend"`       // "auto" | "tmux" | "zellij" | "wezterm" | "kitty"
+	PollInterval  string         `toml:"poll_interval"` // e.g. "200ms", "1s"; default "200ms"
 	AgentProfiles []AgentProfile `toml:"agent"`
 }
 
@@ -39,6 +40,7 @@ func Defaults() *Config {
 		Backend:      "auto",
 		TeamName:     "",
 		DefaultAgent: "",
+		PollInterval: "200ms",
 	}
 }
 

@@ -24,7 +24,6 @@ func init() {
 
 	eventsTailCmd.Flags().String("filter", "", "Only emit events whose Type contains this string (e.g. task, run.done)")
 	eventsTailCmd.Flags().Int("n", 0, "Print last N events then exit (0 = follow forever)")
-	eventsTailCmd.Flags().BoolP("follow", "f", false, "Keep streaming after printing existing events (ignored when --n=0)")
 }
 
 var eventsTailCmd = &cobra.Command{
@@ -35,6 +34,17 @@ var eventsTailCmd = &cobra.Command{
 		filter, _ := cmd.Flags().GetString("filter")
 		n, _ := cmd.Flags().GetInt("n")
 
+		// --n: snapshot mode — read existing events once, print last N, exit.
+		if n > 0 {
+			evts, err := events.Last(root, filter, n)
+			if err != nil {
+				output.PrintError(err, jsonFlag(cmd))
+				return nil
+			}
+			return output.Print(evts, jsonFlag(cmd))
+		}
+
+		// Follow mode: stream until SIGINT/SIGTERM.
 		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 		defer stop()
 
@@ -44,19 +54,6 @@ var eventsTailCmd = &cobra.Command{
 			return nil
 		}
 
-		if n > 0 {
-			// Collect all existing events, then print last N.
-			var buf []events.Event
-			for e := range ch {
-				buf = append(buf, e)
-			}
-			if len(buf) > n {
-				buf = buf[len(buf)-n:]
-			}
-			return output.Print(buf, jsonFlag(cmd))
-		}
-
-		// Follow mode: stream until cancelled.
 		asJSON := jsonFlag(cmd)
 		for e := range ch {
 			if asJSON {

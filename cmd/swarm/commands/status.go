@@ -19,6 +19,7 @@ type SwarmStatus struct {
 	TasksDone  int `json:"tasks_done"`
 	Unread     int `json:"unread"`
 	RunsActive int `json:"runs_active"`
+	Panes      int `json:"panes"`
 }
 
 // StatusCmd is the `swarm status` command.
@@ -58,10 +59,9 @@ var StatusCmd = &cobra.Command{
 		}
 
 		// Pane count: best-effort, ignore errors.
-		_ = cfg // used by DetectBackend
 		if b, err := pane.DetectBackend(cfg); err == nil {
-			if _, lerr := b.List(); lerr != nil {
-				// backend detected but List failed — ignore silently
+			if panes, lerr := b.List(); lerr == nil {
+				st.Panes = len(panes)
 			}
 		}
 
@@ -69,8 +69,8 @@ var StatusCmd = &cobra.Command{
 			return output.Print(st, true)
 		}
 
-		fmt.Printf("Agents: %d  Tasks: %d (%d done)  Unread: %d  Active runs: %d\n",
-			st.Agents, st.Tasks, st.TasksDone, st.Unread, st.RunsActive)
+		fmt.Printf("Agents: %d  Tasks: %d (%d done)  Unread: %d  Active runs: %d  Panes: %d\n",
+			st.Agents, st.Tasks, st.TasksDone, st.Unread, st.RunsActive, st.Panes)
 		return nil
 	},
 }

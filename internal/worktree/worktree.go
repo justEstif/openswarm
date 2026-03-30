@@ -42,7 +42,7 @@ const (
 type Worktree struct {
 	ID        string    `json:"id"`
 	Branch    string    `json:"branch"`
-	Path      string    `json:"path"`              // absolute path to worktree directory
+	Path      string    `json:"path"` // absolute path to worktree directory
 	AgentID   string    `json:"agent_id,omitempty"`
 	Status    Status    `json:"status"`
 	CreatedAt time.Time `json:"created_at"`
@@ -68,9 +68,9 @@ func sanitizeBranch(b string) string {
 // Worktrees must live outside the project directory because git forbids
 // nested worktrees.
 func worktreePath(root *swarmfs.Root, branch string) string {
-	projectRoot := filepath.Dir(root.Dir)      // e.g. /home/user/projects/openswarm
-	projectName := filepath.Base(projectRoot)  // e.g. openswarm
-	parentDir := filepath.Dir(projectRoot)     // e.g. /home/user/projects
+	projectRoot := filepath.Dir(root.Dir)     // e.g. /home/user/projects/openswarm
+	projectName := filepath.Base(projectRoot) // e.g. openswarm
+	parentDir := filepath.Dir(projectRoot)    // e.g. /home/user/projects
 	return filepath.Join(parentDir, projectName+"-"+sanitizeBranch(branch))
 }
 
