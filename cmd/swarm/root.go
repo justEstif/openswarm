@@ -8,6 +8,12 @@ import (
 	"github.com/justEstif/openswarm/internal/output"
 	"github.com/justEstif/openswarm/internal/swarmfs"
 	"github.com/spf13/cobra"
+
+	// Register multiplexer backends.
+	_ "github.com/justEstif/openswarm/internal/pane/ghostty"
+	_ "github.com/justEstif/openswarm/internal/pane/tmux"
+	_ "github.com/justEstif/openswarm/internal/pane/wezterm"
+	_ "github.com/justEstif/openswarm/internal/pane/zellij"
 )
 
 // rootCmd is the top-level `swarm` command.
@@ -36,6 +42,8 @@ func init() {
 	rootCmd.AddCommand(commands.AgentCmd)
 	rootCmd.AddCommand(commands.TaskCmd)
 	rootCmd.AddCommand(commands.MsgCmd)
+	rootCmd.AddCommand(commands.PaneCmd)
+	rootCmd.AddCommand(commands.RunCmd)
 }
 
 // mustRoot is the middleware used by every command handler.

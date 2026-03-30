@@ -66,14 +66,14 @@
 
 | # | Deliverable | Status | Notes |
 |---|---|---|---|
-| 3.1 | `Backend` interface + `DetectBackend` in `internal/pane/backend.go` | 🔄 | **Commit the interface before any implementation.** 8 methods: `Spawn`, `Send`, `Capture`, `Subscribe`, `List`, `Close`, `Wait`, `Name`. |
-| 3.2 | tmux backend | 🔄 | Most battle-tested. Ship first to validate the interface concretely. |
-| 3.3 | Zellij backend | 🔄 | Only backend with native push Subscribe (`zellij subscribe --format json`). |
-| 3.4 | WezTerm backend | 🔄 | Same coverage as tmux (polling Subscribe). Exit code gap: returns `-1` by convention. |
-| 3.5 | Ghostty stub | 🔄 | `ErrNotSupported` on all methods with pointer to issue #4625. |
-| 3.6 | `internal/run` — `Start`, `Wait`, `List`, `Kill` | 🔄 | Thin layer on `pane`. `<promise>COMPLETE</promise>` signal detection lives here. |
-| 3.7 | `swarm pane` commands — `spawn`, `send`, `capture`, `list`, `close` | 🔄 | Thin cobra handlers. |
-| 3.8 | `swarm run` commands — `start`, `wait`, `list`, `kill`, `logs` | 🔄 | Thin cobra handlers. |
+| 3.1 | `Backend` interface + `DetectBackend` in `internal/pane/backend.go` | ✅ | **Commit the interface before any implementation.** 8 methods: `Spawn`, `Send`, `Capture`, `Subscribe`, `List`, `Close`, `Wait`, `Name`. |
+| 3.2 | tmux backend | ✅ | Most battle-tested. Ship first to validate the interface concretely. |
+| 3.3 | Zellij backend | ✅ | Only backend with native push Subscribe (`zellij subscribe --format json`). |
+| 3.4 | WezTerm backend | ✅ | Same coverage as tmux (polling Subscribe). Exit code gap: returns `-1` by convention. |
+| 3.5 | Ghostty stub | ✅ | `ErrNotSupported` on all methods with pointer to issue #4625. |
+| 3.6 | `internal/run` — `Start`, `Wait`, `List`, `Kill` | ✅ | Thin layer on `pane`. `<promise>COMPLETE</promise>` signal detection lives here. |
+| 3.7 | `swarm pane` commands — `spawn`, `send`, `capture`, `list`, `close` | ✅ | Thin cobra handlers. |
+| 3.8 | `swarm run` commands — `start`, `wait`, `list`, `kill`, `logs` | ✅ | Thin cobra handlers. |
 
 **Parallelism:** Once 3.1 (interface) is done, steps 3.2 / 3.3 / 3.4 are fully independent and can be assigned to separate agents simultaneously.
 
