@@ -53,8 +53,8 @@
 
 | # | Deliverable | Status | Notes |
 |---|---|---|---|
-| 2.1 | `internal/msg` — `Send`, `Inbox`, `Read`, `Reply`, `Clear`, `UnreadCount`, `Watch` | ⬜ | Sends are atomic file writes (no lock). Reads enumerate inbox dir. |
-| 2.2 | `swarm msg` commands — `send`, `inbox`, `read`, `reply`, `clear` | ⬜ | Thin cobra handlers. |
+| 2.1 | `internal/msg` — `Send`, `Inbox`, `Read`, `Reply`, `Clear`, `UnreadCount`, `Watch` | 🔄 | Sends are atomic file writes (no lock). Reads enumerate inbox dir. |
+| 2.2 | `swarm msg` commands — `send`, `inbox`, `read`, `reply`, `clear` | 🔄 | Thin cobra handlers. |
 
 **Gate:** Two agents in the same project root can `swarm msg send` and `swarm msg inbox` with no multiplexer running.
 
