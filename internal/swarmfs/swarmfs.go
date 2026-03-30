@@ -57,6 +57,11 @@ func FindRoot() (*Root, error) {
 	if err != nil {
 		return nil, fmt.Errorf("swarmfs: cannot determine working directory: %w", err)
 	}
+	// Resolve symlinks so the returned root path is always canonical
+	// (e.g. macOS /var -> /private/var, /tmp -> /private/tmp).
+	if resolved, err := filepath.EvalSymlinks(cwd); err == nil {
+		cwd = resolved
+	}
 
 	dir := cwd
 	for {

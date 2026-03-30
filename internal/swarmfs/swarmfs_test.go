@@ -164,7 +164,12 @@ func TestFindRoot_Found(t *testing.T) {
 		t.Fatalf("FindRoot: %v", err)
 	}
 
+	// filepath.EvalSymlinks resolves macOS /var -> /private/var (and similar
+	// platform symlinks) so both sides of the comparison are canonical.
 	wantDir := filepath.Join(base, ".swarm")
+	if resolved, err := filepath.EvalSymlinks(wantDir); err == nil {
+		wantDir = resolved
+	}
 	if root.Dir != wantDir {
 		t.Errorf("Dir got %q, want %q", root.Dir, wantDir)
 	}

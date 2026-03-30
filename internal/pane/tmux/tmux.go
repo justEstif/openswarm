@@ -238,10 +238,17 @@ func (b *TmuxBackend) Close(id pane.PaneID) error {
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		msg := strings.ToLower(string(out))
-		// tmux prints "no pane" or "can't find pane" variants when gone.
+		// Treat these as "pane is already gone" — idempotent success:
+		//   - tmux prints "no pane" / "can't find pane" when the pane is gone
+		//   - "no server" / "error connecting" / "failed to connect" when the
+		//     tmux server exited after its last session was removed (happens in
+		//     CI when closing the only pane tears down the server too)
 		if strings.Contains(msg, "no pane") ||
 			strings.Contains(msg, "can't find pane") ||
-			strings.Contains(msg, "unknown pane") {
+			strings.Contains(msg, "unknown pane") ||
+			strings.Contains(msg, "no server") ||
+			strings.Contains(msg, "error connecting") ||
+			strings.Contains(msg, "failed to connect") {
 			return nil
 		}
 		return fmt.Errorf("kill pane %s: %w", id, err)
