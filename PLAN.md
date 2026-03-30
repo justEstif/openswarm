@@ -22,11 +22,11 @@
 
 | # | Deliverable | Status | Notes |
 |---|---|---|---|
-| 0.1 | `internal/swarmfs` — `FindRoot`, `AtomicWrite`, `AppendLine`, `WithFileLock`, `NewID` | ⬜ | Owns all `.swarm/` path construction. Nothing else may construct paths by hand. |
-| 0.2 | `internal/output` — `Print`, `PrintError`, `SwarmError` | ⬜ | Zero deps. Establishes `--json` contract for every command from day one. |
-| 0.3 | `internal/config` — `Load` | ⬜ | Hides TOML format, env var merging, defaults. |
-| 0.4 | `internal/events` — `Append`, `Tail` | ⬜ | Append-only `events.jsonl`. Must exist before any store is written. |
-| 0.5 | `cmd/swarm` root — root cobra command, `--json` global flag, `mustRoot()` middleware, `swarm init`, `swarm version` | ⬜ | Skeleton all commands hang off of. |
+| 0.1 | `internal/swarmfs` — `FindRoot`, `AtomicWrite`, `AppendLine`, `WithFileLock`, `NewID` | ✅ | Owns all `.swarm/` path construction. Nothing else may construct paths by hand. |
+| 0.2 | `internal/output` — `Print`, `PrintError`, `SwarmError` | ✅ | Zero deps. Establishes `--json` contract for every command from day one. |
+| 0.3 | `internal/config` — `Load` | ✅ | Hides TOML format, env var merging, defaults. |
+| 0.4 | `internal/events` — `Append`, `Tail` | ✅ | Append-only `events.jsonl`. Must exist before any store is written. |
+| 0.5 | `cmd/swarm` root — root cobra command, `--json` global flag, `mustRoot()` middleware, `swarm init`, `swarm version` | ✅ | Skeleton all commands hang off of. |
 
 **Gate:** `swarm init` creates `.swarm/`, `swarm version` prints version. Nothing crashes.
 
