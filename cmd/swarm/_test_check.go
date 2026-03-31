@@ -5,6 +5,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/justEstif/openswarm/internal/task"
 )
 

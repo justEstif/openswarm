@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/justEstif/openswarm/internal/output"
 	"github.com/justEstif/openswarm/internal/worktree"
-	"github.com/spf13/cobra"
 )
 
 // WorktreeCmd is the `swarm worktree` group command.

@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/justEstif/openswarm/internal/msg"
 	"github.com/justEstif/openswarm/internal/output"
-	"github.com/spf13/cobra"
 )
 
 // MsgCmd is the `swarm msg` group command.

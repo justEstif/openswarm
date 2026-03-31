@@ -3,13 +3,14 @@ package commands
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/justEstif/openswarm/internal/agent"
 	"github.com/justEstif/openswarm/internal/msg"
 	"github.com/justEstif/openswarm/internal/output"
 	"github.com/justEstif/openswarm/internal/pane"
 	"github.com/justEstif/openswarm/internal/run"
 	"github.com/justEstif/openswarm/internal/task"
-	"github.com/spf13/cobra"
 )
 
 // SwarmStatus holds the aggregated swarm state for `swarm status`.

@@ -3,9 +3,10 @@ package commands
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/justEstif/openswarm/internal/output"
 	"github.com/justEstif/openswarm/internal/task"
-	"github.com/spf13/cobra"
 )
 
 // PromptCmd is the `swarm prompt` command.

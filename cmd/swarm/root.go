@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/justEstif/openswarm/cmd/swarm/commands"
 	"github.com/spf13/cobra"
+
+	"github.com/justEstif/openswarm/cmd/swarm/commands"
 
 	// Register multiplexer backends.
 	_ "github.com/justEstif/openswarm/internal/pane/ghostty"

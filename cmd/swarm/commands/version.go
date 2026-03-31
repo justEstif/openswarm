@@ -3,8 +3,9 @@ package commands
 import (
 	"fmt"
 
-	"github.com/justEstif/openswarm/internal/output"
 	"github.com/spf13/cobra"
+
+	"github.com/justEstif/openswarm/internal/output"
 )
 
 // Populated by goreleaser ldflags at build time.

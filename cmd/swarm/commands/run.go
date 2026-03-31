@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/justEstif/openswarm/internal/output"
 	"github.com/justEstif/openswarm/internal/pane"
 	"github.com/justEstif/openswarm/internal/run"
-	"github.com/spf13/cobra"
 )
 
 // RunCmd is the `swarm run` command.

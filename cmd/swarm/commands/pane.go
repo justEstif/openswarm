@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/justEstif/openswarm/internal/output"
 	"github.com/justEstif/openswarm/internal/pane"
-	"github.com/spf13/cobra"
 )
 
 // PaneCmd is the `swarm pane` command group.

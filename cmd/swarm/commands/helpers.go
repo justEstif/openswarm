@@ -7,10 +7,11 @@ package commands
 import (
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/justEstif/openswarm/internal/config"
 	"github.com/justEstif/openswarm/internal/output"
 	"github.com/justEstif/openswarm/internal/swarmfs"
-	"github.com/spf13/cobra"
 )
 
 // jsonFlag returns the value of the persistent --json flag from the root

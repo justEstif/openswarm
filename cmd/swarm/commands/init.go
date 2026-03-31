@@ -5,9 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/spf13/cobra"
+
 	"github.com/justEstif/openswarm/internal/output"
 	"github.com/justEstif/openswarm/internal/swarmfs"
-	"github.com/spf13/cobra"
 )
 
 // InitCmd implements `swarm init`.
