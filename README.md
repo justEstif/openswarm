@@ -67,17 +67,30 @@ npm install -g openswarm
 brew install justEstif/tap/openswarm
 ```
 
+### Go
+
+```bash
+go install github.com/justEstif/openswarm/cmd/swarm@latest
+```
+
+### mise
+
+Add to your `mise.toml`:
+
+```toml
+[tools]
+"go:github.com/justEstif/openswarm/cmd/swarm" = "latest"
+```
+
+Or install globally:
+
+```bash
+mise use -g "go:github.com/justEstif/openswarm/cmd/swarm@latest"
+```
+
 ### Direct download
 
 Download the binary for your platform from [GitHub Releases](https://github.com/justEstif/openswarm/releases) and add it to your `PATH`.
-
-### Build from source
-
-```bash
-git clone https://github.com/justEstif/openswarm
-cd openswarm
-go install ./cmd/swarm
-```
 
 ## Development
 
