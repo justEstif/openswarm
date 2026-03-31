@@ -61,7 +61,7 @@ All state lives under `.swarm/` in the project root (or `$SWARM_DIR`).
 npm install -g openswarm
 ```
 
-### Homebrew (coming soon)
+### Homebrew
 
 ```bash
 brew install justEstif/tap/openswarm
