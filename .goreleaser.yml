@@ -36,6 +36,24 @@ archives:
       - README.md
       - docs/ARCHITECTURE.md
 
+brews:
+  - name: openswarm
+    repository:
+      owner: justEstif
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "brew: update openswarm to {{ .Tag }}"
+    homepage: "https://github.com/justEstif/openswarm"
+    description: "Multi-agent task orchestration CLI — swarm messaging, tasks, panes, and worktrees"
+    license: "MIT"
+    install: |
+      bin.install "swarm"
+    test: |
+      system "#{bin}/swarm", "--version"
+
 checksum:
   name_template: "checksums.txt"
 
