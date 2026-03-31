@@ -115,7 +115,9 @@ func InitRoot(base string) (*Root, error) {
 		if err != nil {
 			return nil, fmt.Errorf("swarmfs: cannot create config.toml: %w", err)
 		}
-		f.Close()
+		if err := f.Close(); err != nil {
+			return nil, fmt.Errorf("swarmfs: cannot close config.toml: %w", err)
+		}
 	}
 
 	return rootAt(swarmDir), nil
@@ -152,7 +154,7 @@ func AtomicWrite(path string, data []byte) error {
 	ok := false
 	defer func() {
 		if !ok {
-			os.Remove(tmpName)
+			_ = os.Remove(tmpName) // best-effort cleanup; error cannot be propagated from defer
 		}
 	}()
 

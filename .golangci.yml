@@ -10,6 +10,15 @@ linters:
     - misspell
     - unconvert
     - unparam
+  settings:
+    errcheck:
+      # fmt.Fprint* writes to stdout/stderr or buffered tabwriters; ignoring
+      # these errors is idiomatic Go for CLI output (tabwriter surfaces errors
+      # via Flush; terminal write failures are unrecoverable).
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintln
+        - fmt.Fprintf
   exclusions:
     rules:
       - path: _test\.go
