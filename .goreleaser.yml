@@ -36,8 +36,10 @@ archives:
       - README.md
       - docs/ARCHITECTURE.md
 
-brews:
+homebrew_casks:
   - name: openswarm
+    binaries:
+      - swarm
     repository:
       owner: justEstif
       name: homebrew-tap
@@ -49,10 +51,12 @@ brews:
     homepage: "https://github.com/justEstif/openswarm"
     description: "Multi-agent task orchestration CLI — swarm messaging, tasks, panes, and worktrees"
     license: "MIT"
-    install: |
-      bin.install "swarm"
-    test: |
-      system "#{bin}/swarm", "--version"
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/swarm"]
+          end
 
 checksum:
   name_template: "checksums.txt"
