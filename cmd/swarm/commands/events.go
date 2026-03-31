@@ -8,9 +8,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/justEstif/openswarm/internal/events"
 	"github.com/justEstif/openswarm/internal/output"
-	"github.com/spf13/cobra"
 )
 
 // EventsCmd is the `swarm events` command group.

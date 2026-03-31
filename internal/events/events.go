@@ -179,7 +179,7 @@ func drainFrom(path string, offset int64, filter string, ch chan<- Event, ctx co
 	if err != nil {
 		return 0, fmt.Errorf("events: open %q: %w", path, err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	if offset > 0 {
 		if _, err := f.Seek(offset, 0); err != nil {

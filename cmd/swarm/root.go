@@ -1,12 +1,7 @@
 package main
 
 import (
-	"os"
-
 	"github.com/justEstif/openswarm/cmd/swarm/commands"
-	"github.com/justEstif/openswarm/internal/config"
-	"github.com/justEstif/openswarm/internal/output"
-	"github.com/justEstif/openswarm/internal/swarmfs"
 	"github.com/spf13/cobra"
 
 	// Register multiplexer backends.
@@ -48,32 +43,4 @@ func init() {
 	rootCmd.AddCommand(commands.EventsCmd)
 	rootCmd.AddCommand(commands.StatusCmd)
 	rootCmd.AddCommand(commands.PromptCmd)
-}
-
-// mustRoot is the middleware used by every command handler.
-// It calls swarmfs.FindRoot() and config.Load().
-// On error it prints via output.PrintError and calls os.Exit(1).
-//
-// Note: command handlers live in the commands sub-package which cannot import
-// package main. Those handlers use the equivalent unexported helpers defined in
-// commands/helpers.go. This copy is provided here for any future handlers that
-// live directly in package main.
-func mustRoot(cmd *cobra.Command) (*swarmfs.Root, *config.Config) {
-	root, err := swarmfs.FindRoot()
-	if err != nil {
-		output.PrintError(err, jsonFlag(cmd))
-		os.Exit(1)
-	}
-	cfg, err := config.Load(root)
-	if err != nil {
-		output.PrintError(err, jsonFlag(cmd))
-		os.Exit(1)
-	}
-	return root, cfg
-}
-
-// jsonFlag returns the --json flag value from cmd.
-func jsonFlag(cmd *cobra.Command) bool {
-	b, _ := cmd.Root().PersistentFlags().GetBool("json")
-	return b
 }

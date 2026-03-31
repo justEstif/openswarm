@@ -11,7 +11,6 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
-	"syscall"
 )
 
 // ─── Root ────────────────────────────────────────────────────────────────────
@@ -159,11 +158,11 @@ func AtomicWrite(path string, data []byte) error {
 	}()
 
 	if _, err := tmp.Write(data); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return fmt.Errorf("swarmfs: AtomicWrite write temp: %w", err)
 	}
 	if err := tmp.Sync(); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return fmt.Errorf("swarmfs: AtomicWrite sync temp: %w", err)
 	}
 	if err := tmp.Close(); err != nil {
@@ -190,38 +189,13 @@ func AppendLine(path string, data []byte) error {
 	if err != nil {
 		return fmt.Errorf("swarmfs: AppendLine open %q: %w", path, err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	line := append(data, '\n')
 	if _, err := f.Write(line); err != nil {
 		return fmt.Errorf("swarmfs: AppendLine write %q: %w", path, err)
 	}
 	return nil
-}
-
-// ─── File locking ────────────────────────────────────────────────────────────
-
-// WithFileLock acquires an exclusive flock on lockPath, calls fn, then releases
-// the lock. It creates lockPath if it does not exist.
-// Uses syscall.Flock(LOCK_EX) — this is a cooperative advisory lock.
-func WithFileLock(lockPath string, fn func() error) error {
-	dir := filepath.Dir(lockPath)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return fmt.Errorf("swarmfs: WithFileLock mkdir %q: %w", dir, err)
-	}
-
-	f, err := os.OpenFile(lockPath, os.O_CREATE|os.O_RDWR, 0o644)
-	if err != nil {
-		return fmt.Errorf("swarmfs: WithFileLock open %q: %w", lockPath, err)
-	}
-	defer f.Close()
-
-	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX); err != nil {
-		return fmt.Errorf("swarmfs: WithFileLock acquire %q: %w", lockPath, err)
-	}
-	defer syscall.Flock(int(f.Fd()), syscall.LOCK_UN) //nolint:errcheck
-
-	return fn()
 }
 
 // ─── ID generation ───────────────────────────────────────────────────────────

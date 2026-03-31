@@ -3,9 +3,10 @@ package commands
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/justEstif/openswarm/internal/agent"
 	"github.com/justEstif/openswarm/internal/output"
-	"github.com/spf13/cobra"
 )
 
 // AgentCmd is the `swarm agent` group command.

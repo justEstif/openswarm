@@ -46,7 +46,7 @@ func (w *WeztermBackend) Spawn(name, cmd string, env map[string]string) (pane.Pa
 	sb.WriteString(cmd)
 	shellCmd := sb.String()
 
-	out, err := runCmd("wezterm", "cli", "spawn", "--", "sh", "-c", shellCmd)
+	out, err := runCmd("cli", "spawn", "--", "sh", "-c", shellCmd)
 	if err != nil {
 		return "", fmt.Errorf("wezterm spawn: %w", err)
 	}
@@ -56,14 +56,14 @@ func (w *WeztermBackend) Spawn(name, cmd string, env map[string]string) (pane.Pa
 	}
 
 	// Set the tab title (best-effort; don't fail Spawn if this fails).
-	_, _ = runCmd("wezterm", "cli", "set-tab-title", "--pane-id", string(id), name)
+	_, _ = runCmd("cli", "set-tab-title", "--pane-id", string(id), name)
 
 	return id, nil
 }
 
 // Send delivers text to a pane's stdin.
 func (w *WeztermBackend) Send(id pane.PaneID, text string) error {
-	_, err := runCmd("wezterm", "cli", "send-text", "--pane-id", string(id), "--no-paste", text)
+	_, err := runCmd("cli", "send-text", "--pane-id", string(id), "--no-paste", text)
 	if err != nil {
 		return fmt.Errorf("wezterm send-text: %w", err)
 	}
@@ -72,7 +72,7 @@ func (w *WeztermBackend) Send(id pane.PaneID, text string) error {
 
 // Capture returns the current scrollback (last 200 lines) of a pane as plain text.
 func (w *WeztermBackend) Capture(id pane.PaneID) (string, error) {
-	out, err := runCmd("wezterm", "cli", "get-text", "--pane-id", string(id), "--start-line", "-200")
+	out, err := runCmd("cli", "get-text", "--pane-id", string(id), "--start-line", "-200")
 	if err != nil {
 		return "", fmt.Errorf("wezterm get-text: %w", err)
 	}
@@ -141,7 +141,7 @@ type weztermPane struct {
 // List returns all panes known to WezTerm in the current session.
 // Running is always true because WezTerm does not expose exit state via CLI.
 func (w *WeztermBackend) List() ([]pane.PaneInfo, error) {
-	out, err := runCmd("wezterm", "cli", "list", "--format", "json")
+	out, err := runCmd("cli", "list", "--format", "json")
 	if err != nil {
 		return nil, fmt.Errorf("wezterm list: %w", err)
 	}
@@ -172,7 +172,7 @@ func parseWeztermList(jsonData string) ([]pane.PaneInfo, error) {
 
 // Close terminates a pane. Idempotent — errors from killing an already-dead pane are ignored.
 func (w *WeztermBackend) Close(id pane.PaneID) error {
-	_, err := runCmd("wezterm", "cli", "kill-pane", "--pane-id", string(id))
+	_, err := runCmd("cli", "kill-pane", "--pane-id", string(id))
 	if err != nil {
 		// kill-pane exits non-zero if the pane is already gone; treat as success.
 		return nil
@@ -202,7 +202,7 @@ func (w *WeztermBackend) Wait(id pane.PaneID) (int, error) {
 
 // paneExists returns true if id appears in `wezterm cli list --format json`.
 func (w *WeztermBackend) paneExists(id pane.PaneID) (bool, error) {
-	out, err := runCmd("wezterm", "cli", "list", "--format", "json")
+	out, err := runCmd("cli", "list", "--format", "json")
 	if err != nil {
 		return false, err
 	}
@@ -219,9 +219,10 @@ func (w *WeztermBackend) paneExists(id pane.PaneID) (bool, error) {
 	return false, nil
 }
 
-// runCmd runs an external command and returns its combined stdout output.
+// runCmd runs a wezterm CLI command and returns its combined stdout output.
 // stderr is captured and included in the error message on failure.
-func runCmd(name string, args ...string) (string, error) {
+func runCmd(args ...string) (string, error) { //nolint:unparam
+	const name = "wezterm"
 	cmd := exec.Command(name, args...)
 	out, err := cmd.Output()
 	if err != nil {

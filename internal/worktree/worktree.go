@@ -127,15 +127,14 @@ func writeAll(root *swarmfs.Root, wts []*Worktree) error {
 // ─── Git helper ───────────────────────────────────────────────────────────────
 
 // runGit executes a git command in dir with the given arguments.
-// It returns combined stdout+stderr output on success, or a wrapped error
-// containing the output on failure.
-func runGit(dir string, args ...string) ([]byte, error) {
+// Returns a wrapped error containing stdout+stderr output on failure.
+func runGit(dir string, args ...string) error {
 	cmd := exec.Command("git", append([]string{"-C", dir}, args...)...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("git %s: %w\n%s", strings.Join(args, " "), err, out)
+		return fmt.Errorf("git %s: %w\n%s", strings.Join(args, " "), err, out)
 	}
-	return out, nil
+	return nil
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -151,11 +150,11 @@ func New(root *swarmfs.Root, branch, agentID string) (*Worktree, error) {
 	path := worktreePath(root, branch)
 
 	// Try to create the worktree with a new branch first.
-	_, err := runGit(projRoot, "worktree", "add", path, "-b", branch)
+	err := runGit(projRoot, "worktree", "add", path, "-b", branch)
 	if err != nil {
 		// If the branch already exists, fall back to checking it out.
 		if strings.Contains(err.Error(), "already exists") {
-			if _, err2 := runGit(projRoot, "worktree", "add", path, branch); err2 != nil {
+			if err2 := runGit(projRoot, "worktree", "add", path, branch); err2 != nil {
 				return nil, fmt.Errorf("worktree: add (existing branch): %w", err2)
 			}
 		} else {
@@ -234,20 +233,20 @@ func Merge(root *swarmfs.Root, id string, opts MergeOpts) error {
 	projRoot := projectRoot(root)
 
 	if opts.Squash {
-		if _, err := runGit(projRoot, "merge", "--squash", wt.Branch); err != nil {
+		if err := runGit(projRoot, "merge", "--squash", wt.Branch); err != nil {
 			return fmt.Errorf("worktree: merge --squash: %w", err)
 		}
-		if _, err := runGit(projRoot, "commit", "-m", "Squash merge "+wt.Branch); err != nil {
+		if err := runGit(projRoot, "commit", "-m", "Squash merge "+wt.Branch); err != nil {
 			return fmt.Errorf("worktree: commit after squash: %w", err)
 		}
 	} else {
-		if _, err := runGit(projRoot, "merge", "--no-ff", wt.Branch, "--no-edit"); err != nil {
+		if err := runGit(projRoot, "merge", "--no-ff", wt.Branch, "--no-edit"); err != nil {
 			return fmt.Errorf("worktree: merge --no-ff: %w", err)
 		}
 	}
 
 	if opts.DeleteBranch {
-		if _, err := runGit(projRoot, "branch", "-D", wt.Branch); err != nil {
+		if err := runGit(projRoot, "branch", "-D", wt.Branch); err != nil {
 			return fmt.Errorf("worktree: delete branch: %w", err)
 		}
 	}
@@ -285,7 +284,7 @@ func Clean(root *swarmfs.Root, id string) error {
 
 	// Remove the worktree directory. Ignore errors if the path is already gone.
 	if _, statErr := os.Stat(wt.Path); statErr == nil {
-		if _, err := runGit(projRoot, "worktree", "remove", wt.Path, "--force"); err != nil {
+		if err := runGit(projRoot, "worktree", "remove", wt.Path, "--force"); err != nil {
 			// Only ignore if the path is truly gone now; otherwise propagate.
 			if _, statErr2 := os.Stat(wt.Path); statErr2 == nil {
 				return fmt.Errorf("worktree: remove: %w", err)
@@ -294,7 +293,7 @@ func Clean(root *swarmfs.Root, id string) error {
 	}
 
 	// Prune stale worktree references regardless.
-	if _, err := runGit(projRoot, "worktree", "prune"); err != nil {
+	if err := runGit(projRoot, "worktree", "prune"); err != nil {
 		return fmt.Errorf("worktree: prune: %w", err)
 	}
 
