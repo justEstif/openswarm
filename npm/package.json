@@ -1,6 +1,6 @@
 {
   "name": "openswarm",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Multi-agent task orchestration CLI — swarm messaging, tasks, panes, and worktrees",
   "keywords": ["ai", "agents", "swarm", "cli", "multi-agent"],
   "homepage": "https://github.com/justEstif/openswarm",
