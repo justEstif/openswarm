@@ -28,5 +28,3 @@ Thumbs.db
 
 # Orchestrator scratch (internal agent workspaces)
 .orchestrator/
-.beans/
-.beans.yml
