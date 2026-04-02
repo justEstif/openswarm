@@ -5,3 +5,4 @@ This directory defines the high-level concepts, business logic, and architecture
 - [[state]] — `.swarm/` directory layout and storage patterns
 - [[backends]] — multiplexer backend interface, detection cascade, and per-backend coverage
 - [[extras]] — agent skill, Claude Code hooks, opencode plugin, and pi extension
+- [[site]] — GitHub Pages landing page: visual design, content structure, interactions, and technical choices
