@@ -225,10 +225,22 @@ func TestBuildEnvCmd(t *testing.T) {
 		t.Errorf("buildEnvCmd with empty env = %q; want %q", got, "go build ./...")
 	}
 
-	// Single env var.
+	// Single env var — value must be single-quoted.
 	got = buildEnvCmd("myapp", map[string]string{"FOO": "bar"})
-	if got != "env FOO=bar myapp" {
-		t.Errorf("buildEnvCmd single var = %q; want %q", got, "env FOO=bar myapp")
+	if got != "env FOO='bar' myapp" {
+		t.Errorf("buildEnvCmd single var = %q; want %q", got, "env FOO='bar' myapp")
+	}
+
+	// Value with spaces — must be single-quoted to be safe.
+	got = buildEnvCmd("myapp", map[string]string{"MSG": "hello world"})
+	if got != "env MSG='hello world' myapp" {
+		t.Errorf("buildEnvCmd spaces = %q; want %q", got, "env MSG='hello world' myapp")
+	}
+
+	// Value with single quote — must use '\'' escaping.
+	got = buildEnvCmd("myapp", map[string]string{"X": "it's"})
+	if got != "env X='it'\\''s' myapp" {
+		t.Errorf("buildEnvCmd quote = %q; want %q", got, "env X='it'\\''s' myapp")
 	}
 }
 

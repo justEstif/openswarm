@@ -63,6 +63,12 @@ All three MVP backends implement the full interface. Zellij is uniquely the only
 | Close (idempotent) | ✅ | ✅ | ✅ |
 | Wait (exit code) | ✅ | ✅ (two-step) | ⚠️ returns -1 |
 | Name | ✅ | ✅ | ✅ |
+| `current_tab` placement | ✅ split-window | ✅ new-pane | ✅ default spawn |
+| `new_tab` placement | ✅ new-window | ✅ new-tab (background) | ✅ --new-window |
+| `new_session` placement | ✅ new-session | ⚠️ fire-and-forget only¹ | ✅ --new-window |
+| `CloseOnExit` | ✅ trailer | ✅ -c / trailer | ✅ natural (process exit) |
+
+¹ Zellij `new_session` returns a synthetic `session_*` PaneID. Send/Capture/Wait are unsupported on cross-session panes; use `CloseOnExit=true` and treat it as fire-and-forget.
 
 Zellij provides lower latency via `zellij subscribe --format json` (native push). Validated since v0.44.0 (2026). WezTerm cannot provide exit codes structurally; `Wait()` returns -1 by convention.
 

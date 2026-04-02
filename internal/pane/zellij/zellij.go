@@ -82,14 +82,8 @@ func (b *ZellijBackend) spawnCurrentTab(name, fullCmd string, closeOnExit bool) 
 // immediately after spawning so the user's workflow is not interrupted.
 // With closeOnExit=true, a cleanup trailer closes the tab when the command exits.
 func (b *ZellijBackend) spawnNewTab(name, fullCmd string, closeOnExit bool) (pane.PaneID, error) {
-	// Remember which tab is currently active so we can restore focus after spawning.
-	originalTabID, err := activeTabID()
-	if err != nil {
-		return "", fmt.Errorf("zellij new_tab: get active tab: %w", err)
-	}
-
-	// Snapshot all existing tab IDs so we can identify the brand-new one.
-	tabsBefore, err := listTabIDs()
+	// One list-tabs call gives us both the active tab ID and the full snapshot.
+	originalTabID, tabsBefore, err := listTabsSnapshot()
 	if err != nil {
 		return "", fmt.Errorf("zellij new_tab: list tabs: %w", err)
 	}
@@ -129,18 +123,16 @@ func (b *ZellijBackend) spawnNewTab(name, fullCmd string, closeOnExit bool) (pan
 // spawnNewSession creates a new Zellij session containing the pane.
 // The session name is derived from the pane name. With closeOnExit=true,
 // a cleanup trailer kills the session (via $ZELLIJ_SESSION_NAME) on exit.
+//
+// LIMITATION: The returned PaneID has the prefix "session_" (e.g. "session_swarm-foo").
+// The pane lives in the new session, not the caller's session, so Send, Capture,
+// and Wait will not work on it. new_session is fire-and-forget: use CloseOnExit=true
+// and do not call Wait. Close is idempotent and tolerates session-scoped IDs.
 func (b *ZellijBackend) spawnNewSession(name, fullCmd string, closeOnExit bool) (pane.PaneID, error) {
 	if closeOnExit {
 		fullCmd = fullCmd + `; zellij kill-session "$ZELLIJ_SESSION_NAME" 2>/dev/null || true`
 	}
 
-	// Snapshot panes before so we can identify the newly created one.
-	panesBefore, err := listPaneIDs()
-	if err != nil {
-		return "", fmt.Errorf("zellij new_session: list panes: %w", err)
-	}
-
-	// Run the command in a new named session (detached).
 	sessionName := "swarm-" + name
 	if err := exec.Command("zellij",
 		"--session", sessionName,
@@ -149,16 +141,14 @@ func (b *ZellijBackend) spawnNewSession(name, fullCmd string, closeOnExit bool) 
 		return "", fmt.Errorf("zellij new_session: %w", err)
 	}
 
-	// Attempt to identify the new pane in the current session (may not be visible).
-	// If none found, return a synthetic ID using the session name.
-	newID, _ := findNewPaneID(panesBefore)
-	if newID != "" {
-		return pane.PaneID(newID), nil
-	}
+	// The pane lives in the new session — not visible from list-panes in the
+	// current session. Return a synthetic session-scoped ID so callers can at
+	// least identify the run in runs.json.
 	return pane.PaneID("session_" + sessionName), nil
 }
 
-// buildEnvCmd constructs "env KEY=VAL KEY=VAL <cmd>" if env is non-empty, else just cmd.
+// buildEnvCmd constructs "env KEY='VAL' KEY='VAL' <cmd>" if env is non-empty, else just cmd.
+// Values are single-quoted so spaces and shell special characters are safe.
 func buildEnvCmd(cmd string, env map[string]string) string {
 	if len(env) == 0 {
 		return cmd
@@ -169,11 +159,16 @@ func buildEnvCmd(cmd string, env map[string]string) string {
 		sb.WriteString(" ")
 		sb.WriteString(k)
 		sb.WriteString("=")
-		sb.WriteString(v)
+		sb.WriteString(singleQuote(v))
 	}
 	sb.WriteString(" ")
 	sb.WriteString(cmd)
 	return sb.String()
+}
+
+// singleQuote wraps s in POSIX single quotes, escaping any literal single quotes inside.
+func singleQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\\''")+"'"
 }
 
 // ─── Tab / pane discovery helpers ───────────────────────────────────────────
@@ -186,39 +181,27 @@ type zellijTabJSON struct {
 	Active   bool   `json:"active"`
 }
 
-// activeTabID returns the tab_id of the currently focused tab.
-func activeTabID() (int, error) {
-	out, err := exec.Command("zellij", "action", "list-tabs", "--json").Output()
-	if err != nil {
-		return 0, fmt.Errorf("list-tabs: %w", err)
+// listTabsSnapshot calls list-tabs --json once and returns both the active tab_id
+// and the full set of all tab IDs. Used by spawnNewTab to avoid a double round-trip.
+func listTabsSnapshot() (activeID int, allIDs map[int]struct{}, err error) {
+	out, execErr := exec.Command("zellij", "action", "list-tabs", "--json").Output()
+	if execErr != nil {
+		err = fmt.Errorf("list-tabs: %w", execErr)
+		return
 	}
 	var tabs []zellijTabJSON
-	if err := json.Unmarshal(out, &tabs); err != nil {
-		return 0, fmt.Errorf("list-tabs parse: %w", err)
+	if parseErr := json.Unmarshal(out, &tabs); parseErr != nil {
+		err = fmt.Errorf("list-tabs parse: %w", parseErr)
+		return
 	}
+	allIDs = make(map[int]struct{}, len(tabs))
 	for _, t := range tabs {
+		allIDs[t.TabID] = struct{}{}
 		if t.Active {
-			return t.TabID, nil
+			activeID = t.TabID
 		}
 	}
-	return 0, fmt.Errorf("no active tab found")
-}
-
-// listTabIDs returns the set of current tab IDs in the active session.
-func listTabIDs() (map[int]struct{}, error) {
-	out, err := exec.Command("zellij", "action", "list-tabs", "--json").Output()
-	if err != nil {
-		return nil, fmt.Errorf("list-tabs: %w", err)
-	}
-	var tabs []zellijTabJSON
-	if err := json.Unmarshal(out, &tabs); err != nil {
-		return nil, fmt.Errorf("list-tabs parse: %w", err)
-	}
-	ids := make(map[int]struct{}, len(tabs))
-	for _, t := range tabs {
-		ids[t.TabID] = struct{}{}
-	}
-	return ids, nil
+	return
 }
 
 // findNewTabID polls list-tabs until a tab_id appears that was absent in before.
@@ -239,43 +222,6 @@ func findNewTabID(before map[int]struct{}) (int, error) {
 		time.Sleep(100 * time.Millisecond)
 	}
 	return 0, fmt.Errorf("new tab did not appear in list-tabs within 2s")
-}
-
-// listPaneIDs returns the set of current pane IDs (integer form) in the active session.
-func listPaneIDs() (map[int]struct{}, error) {
-	out, err := exec.Command("zellij", "action", "list-panes", "--json").Output()
-	if err != nil {
-		return nil, fmt.Errorf("list-panes: %w", err)
-	}
-	var raw []zellijPaneJSON
-	if err := json.Unmarshal(out, &raw); err != nil {
-		return nil, fmt.Errorf("list-panes parse: %w", err)
-	}
-	ids := make(map[int]struct{}, len(raw))
-	for _, p := range raw {
-		ids[p.ID] = struct{}{}
-	}
-	return ids, nil
-}
-
-// findNewPaneID polls list-panes until a pane ID appears that was absent in before.
-// Returns the PaneID string ("terminal_N") or empty string on timeout.
-func findNewPaneID(before map[int]struct{}) (string, error) {
-	for range 20 {
-		out, err := exec.Command("zellij", "action", "list-panes", "--json").Output()
-		if err == nil {
-			var raw []zellijPaneJSON
-			if err := json.Unmarshal(out, &raw); err == nil {
-				for _, p := range raw {
-					if _, exists := before[p.ID]; !exists {
-						return fmt.Sprintf("terminal_%d", p.ID), nil
-					}
-				}
-			}
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
-	return "", fmt.Errorf("new pane did not appear in list-panes within 2s")
 }
 
 // findPaneByName lists all panes and returns the ID of the one matching name.

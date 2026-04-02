@@ -34,8 +34,14 @@ func (w *WeztermBackend) Name() string { return "wezterm" }
 
 // Spawn creates a new WezTerm pane running cmd.
 // Env vars are injected by wrapping cmd in `sh -c 'export K=V; ...; exec cmd'`.
-// The tab title is set to name after the pane is created.
-// opts.CloseOnExit is a no-op for WezTerm: tabs already close when their process exits.
+//
+// Placement semantics:
+//   - current_tab (default): spawns a new tab in the current WezTerm window.
+//   - new_tab, new_session: spawns in a brand-new WezTerm window (--new-window).
+//     WezTerm has no session concept; new_session is treated identically to new_tab.
+//
+// CloseOnExit: WezTerm closes panes automatically when their process exits,
+// so no explicit cleanup is needed regardless of this flag.
 func (w *WeztermBackend) Spawn(name, cmd string, opts pane.SpawnOptions) (pane.PaneID, error) {
 	env := opts.Env
 	// Build env prefix: export K=V K2=V2; exec cmd
@@ -48,7 +54,15 @@ func (w *WeztermBackend) Spawn(name, cmd string, opts pane.SpawnOptions) (pane.P
 	sb.WriteString(cmd)
 	shellCmd := sb.String()
 
-	out, err := runCmd("cli", "spawn", "--", "sh", "-c", shellCmd)
+	// Build spawn args: new_tab / new_session → open in a separate window.
+	args := []string{"cli", "spawn"}
+	switch opts.Placement {
+	case pane.PlacementNewTab, pane.PlacementNewSession:
+		args = append(args, "--new-window")
+	}
+	args = append(args, "--", "sh", "-c", shellCmd)
+
+	out, err := runCmd(args...)
 	if err != nil {
 		return "", fmt.Errorf("wezterm spawn: %w", err)
 	}
