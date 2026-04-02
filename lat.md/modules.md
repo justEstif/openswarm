@@ -97,9 +97,11 @@ See [[backends]] for per-backend implementation details.
 
 A thin layer over `pane`. A background run is a pane (tracked by `pane`) plus a record in `runs.json` (tracked here). See [[internal/run/run.go#Run]] for the schema.
 
-[[internal/run/run.go#Start]] calls `pane.Spawn()` and records the returned PaneID. [[internal/run/run.go#Wait]] polls pane output for the `<promise>COMPLETE</promise>` signal pattern as well as process exit — completion signal detection is a run-level concept, not a pane-level one.
+[[internal/run/run.go#Start]] passes `cmd` directly to `pane.Spawn()` (no extra `sh -c` wrapping — backends handle their own shell wrapping) and records the returned PaneID. [[internal/run/run.go#Wait]] polls pane output for the `<promise>COMPLETE</promise>` signal pattern as well as process exit — completion signal detection is a run-level concept, not a pane-level one.
 
 Public API: [[internal/run/run.go#Start]], [[internal/run/run.go#Wait]], [[internal/run/run.go#List]], [[internal/run/run.go#Kill]], [[internal/run/run.go#Logs]].
+
+**CLI surface:** `swarm run [--name n] [--no-wait] -- <cmd>` is the root form; `swarm run start [--name n] [--no-wait] -- <cmd>` is an explicit subcommand alias wired to the same handler ([[cmd/swarm/commands/run.go#runStartCmd]]). Both invoke `run.Start` then optionally `run.Wait`.
 
 ## worktree
 

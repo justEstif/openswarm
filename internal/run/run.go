@@ -109,11 +109,10 @@ func findIdx(runs []*Run, id string) int {
 
 // Start spawns a new pane via b.Spawn, records the run in runs.json, and emits
 // a run.started event. name is the human label; cmd is the full command string
-// (wrapped as "/bin/sh -c '<cmd>'" before being passed to Spawn); env is passed
-// through to Spawn.
+// passed directly to b.Spawn (backends handle their own sh -c wrapping); env is
+// passed through to Spawn.
 func Start(root *swarmfs.Root, b pane.Backend, name, cmd string, env map[string]string) (*Run, error) {
-	shellCmd := "/bin/sh -c '" + cmd + "'"
-	pid, err := b.Spawn(name, shellCmd, env)
+	pid, err := b.Spawn(name, cmd, env)
 	if err != nil {
 		return nil, fmt.Errorf("run: spawn: %w", err)
 	}

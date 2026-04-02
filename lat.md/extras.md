@@ -25,7 +25,7 @@ Install by copying to `~/.config/opencode/plugins/` or `.opencode/plugins/`, or 
 
 ## pi Extension
 
-`extras/pi/extension.ts` is a pi coding agent extension that:
+`extras/pi/openswarm.ts` is a pi coding agent extension that:
 
 1. Runs `swarm init` on `session_start`
 2. Registers `/swarm-status` — shows agents, tasks, unread, active runs in a notification

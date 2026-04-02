@@ -19,7 +19,7 @@ Pane/run commands require tmux, Zellij, or WezTerm running. The backend is auto-
 ## Agents
 
 ```bash
-swarm agent register <name> <role>     # register yourself
+swarm agent register <name> --role <role>  # register yourself
 swarm agent list                       # list all agents
 swarm agent get <id>
 swarm agent deregister <id>
@@ -30,11 +30,11 @@ swarm agent deregister <id>
 ```bash
 swarm task list                        # see all tasks
 swarm task add "description"           # create a task
-swarm task assign <id> --to <agent>    # assign to an agent
+swarm task assign <id> <agent>         # assign to an agent
 swarm task claim <id> --as <agent>     # claim a task yourself
 swarm task done <id>                   # mark complete
 swarm task fail <id>                   # mark failed
-swarm task block <id> --on <other-id>  # declare a dependency
+swarm task block <id> --by <other-id>  # declare a dependency
 swarm task check                       # check for actionable tasks
 swarm task prompt                      # priming prompt for current task state
 ```
@@ -52,13 +52,13 @@ swarm msg clear <agent-id>             # clear inbox
 ## Panes & runs
 
 ```bash
-swarm pane spawn --name <name>         # spawn a terminal pane
+swarm pane spawn <name>                # spawn a terminal pane
 swarm pane list
 swarm pane send <pane-id> "command"    # send keystrokes to a pane
 swarm pane capture <pane-id>           # read pane output
 swarm pane close <pane-id>
 
-swarm run start --name <name> -- <cmd> # run command in a managed pane
+swarm run start [--name <name>] -- <cmd>  # run command in a managed pane
 swarm run wait <run-id>                # block until run finishes
 swarm run list
 swarm run logs <run-id>

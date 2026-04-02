@@ -114,7 +114,9 @@ func TestStart_RecordsRun(t *testing.T) {
 	}
 }
 
-func TestStart_CommandWrappedInShell(t *testing.T) {
+func TestStart_CommandPassedDirectly(t *testing.T) {
+	// Start must pass cmd verbatim to b.Spawn; backends handle their own
+	// sh -c wrapping. Double-wrapping caused /bin/sh: 1: start: not found.
 	root := newTestRoot(t)
 	b := newMock()
 
@@ -126,9 +128,9 @@ func TestStart_CommandWrappedInShell(t *testing.T) {
 	if len(b.spawned) != 1 {
 		t.Fatalf("expected 1 spawned command, got %d", len(b.spawned))
 	}
-	want := "/bin/sh -c 'echo hello'"
+	want := "echo hello"
 	if b.spawned[0] != want {
-		t.Errorf("spawned command = %q, want %q", b.spawned[0], want)
+		t.Errorf("spawned command = %q, want %q (must not be double-wrapped in sh -c)", b.spawned[0], want)
 	}
 }
 

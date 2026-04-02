@@ -23,6 +23,10 @@ func init() {
 	RunCmd.Flags().String("name", "", "Human label for the run (default: run ID)")
 	RunCmd.Flags().Bool("no-wait", false, "Return immediately after spawning")
 
+	runStartCmd.Flags().String("name", "", "Human label for the run (default: run ID)")
+	runStartCmd.Flags().Bool("no-wait", false, "Return immediately after spawning")
+
+	RunCmd.AddCommand(runStartCmd)
 	RunCmd.AddCommand(runListCmd)
 	RunCmd.AddCommand(runGetCmd)
 	RunCmd.AddCommand(runWaitCmd)
@@ -58,6 +62,13 @@ func runStartWait(cmd *cobra.Command, args []string) error {
 		}
 	}
 	return output.Print(r, jsonFlag(cmd))
+}
+
+// swarm run start (alias for the root command — spawn + optional wait)
+var runStartCmd = &cobra.Command{
+	Use:   "start [--name n] [--no-wait] -- <cmd...>",
+	Short: "Spawn a command in a pane and (optionally) wait for it",
+	RunE:  runStartWait,
 }
 
 // swarm run list

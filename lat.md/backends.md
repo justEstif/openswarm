@@ -17,7 +17,7 @@ Wait(id PaneID) (int, error)
 Name() string
 ```
 
-`Close()` is idempotent — no error if the pane is already gone. `Wait()` returns -1 for exit code when the backend cannot provide it (WezTerm).
+`Close()` is idempotent — no error if the pane is already gone. `Wait()` returns -1 for exit code when the backend cannot provide it (WezTerm). **Shell-wrapping contract**: each backend wraps `cmd` in its own `sh -c` internally; callers must pass the raw command string and must NOT pre-wrap it. Double-wrapping causes `sh: command not found` errors.
 
 ## Backend Registration
 
