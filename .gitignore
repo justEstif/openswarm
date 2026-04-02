@@ -28,3 +28,6 @@ Thumbs.db
 
 # Orchestrator scratch (internal agent workspaces)
 .orchestrator/
+.pi
+.opencode
+/lat.md/.cache

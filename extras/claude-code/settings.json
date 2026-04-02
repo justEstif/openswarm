@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "swarm init 2>/dev/null; true",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
