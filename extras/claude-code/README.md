@@ -31,3 +31,23 @@ cp extras/claude-code/settings.json .claude/settings.json
 ```
 
 The hook fires only on `startup` (not `resume` or `compact`), so it won't re-run on every context window reload.
+
+## Command — /assign-task
+
+`extras/claude-code/commands/assign-task.md` is a Claude Code slash command that registers the current session as a swarm worker, claims a task, completes the work, and marks it done.
+
+```bash
+# Per-project
+mkdir -p .claude/commands
+cp extras/claude-code/commands/assign-task.md .claude/commands/
+
+# User-level (all projects)
+mkdir -p ~/.claude/commands
+cp extras/claude-code/commands/assign-task.md ~/.claude/commands/
+```
+
+Then inside Claude Code:
+
+```
+/assign-task task-abc123
+```

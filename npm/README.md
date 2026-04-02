@@ -5,7 +5,7 @@ Multi-agent task orchestration CLI.
 ## Install
 
 ```bash
-npm install -g openswarm
+npm install -g @justestif/openswarm
 ```
 
 This downloads the pre-built binary for your platform from [GitHub Releases](https://github.com/justEstif/openswarm/releases).

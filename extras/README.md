@@ -10,9 +10,9 @@ Supplementary integrations that make openswarm easier to use from a coding agent
 
 | Integration | Path | What it adds |
 |---|---|---|
-| **Claude Code** | `claude-code/` | `SessionStart` hook (auto-init) + skill install guide |
-| **opencode** | `opencode/` | Plugin: auto-init + compaction context injection |
-| **pi** | `pi/` | Extension: auto-init + `/swarm-status` + `/swarm-prompt` commands |
+| **Claude Code** | `claude-code/` | `SessionStart` hook (auto-init) + skill + `/assign-task` command |
+| **opencode** | `opencode/` | Plugin: auto-init + compaction context injection + `/assign-task` command |
+| **pi** | `pi/` | Extension: auto-init + `/swarm-status` + `/swarm-prompt` + `/assign-task` commands |
 
 ## Multiplexer note
 

@@ -10,7 +10,7 @@ const binary = path.join(__dirname, `swarm${ext}`);
 const result = spawnSync(binary, process.argv.slice(2), { stdio: 'inherit' });
 if (result.error) {
   const msg = result.error.code === 'ENOENT'
-    ? 'binary not found. Try reinstalling: npm install -g openswarm'
+    ? 'binary not found. Try reinstalling: npm install -g @justestif/openswarm'
     : result.error.message;
   process.stderr.write(`openswarm: ${msg}\n`);
   process.exit(1);

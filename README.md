@@ -58,7 +58,7 @@ All state lives under `.swarm/` in the project root (or `$SWARM_DIR`).
 ### npm (recommended)
 
 ```bash
-npm install -g openswarm
+npm install -g @justestif/openswarm
 ```
 
 ### Homebrew

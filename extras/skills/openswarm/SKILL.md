@@ -35,18 +35,18 @@ swarm task claim <id> --as <agent>     # claim a task yourself
 swarm task done <id>                   # mark complete
 swarm task fail <id>                   # mark failed
 swarm task block <id> --by <other-id>  # declare a dependency
-swarm task check                       # check for actionable tasks
+swarm task check                       # check task store integrity
 swarm task prompt                      # priming prompt for current task state
 ```
 
 ## Messaging
 
 ```bash
-swarm msg send <agent-id> "text"       # send a message
-swarm msg inbox <agent-id>             # list unread
-swarm msg read <msg-id>                # read a message
-swarm msg reply <msg-id> "text"        # reply in thread
-swarm msg clear <agent-id>             # clear inbox
+swarm msg send <agent> --subject "subj" --body "text"  # send a message
+swarm msg inbox <agent>                # list messages
+swarm msg read <agent> <msg-id>        # read a message (marks it read)
+swarm msg reply <agent> <msg-id> --body "text"  # reply in thread
+swarm msg clear <agent>                # clear read messages from inbox
 ```
 
 ## Panes & runs

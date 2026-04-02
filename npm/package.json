@@ -1,5 +1,5 @@
 {
-  "name": "openswarm",
+  "name": "@justestif/openswarm",
   "version": "0.1.1",
   "description": "Multi-agent task orchestration CLI — swarm messaging, tasks, panes, and worktrees",
   "keywords": ["ai", "agents", "swarm", "cli", "multi-agent"],
