@@ -16,12 +16,20 @@ import (
 	"github.com/justEstif/openswarm/internal/swarmfs"
 )
 
+// PaneConfig holds pane-spawning defaults.
+type PaneConfig struct {
+	// Placement is the default location for new panes.
+	// "current_tab" (default) | "new_tab" | "new_session"
+	Placement string `toml:"placement"`
+}
+
 // Config holds the project-level settings read from .swarm/config.toml.
 type Config struct {
 	TeamName      string         `toml:"team_name"`
 	DefaultAgent  string         `toml:"default_agent"`
 	Backend       string         `toml:"backend"`       // "auto" | "tmux" | "zellij" | "wezterm" | "kitty"
 	PollInterval  string         `toml:"poll_interval"` // e.g. "200ms", "1s"; default "200ms"
+	Pane          PaneConfig     `toml:"pane"`
 	AgentProfiles []AgentProfile `toml:"agent"`
 }
 
@@ -42,6 +50,7 @@ func Defaults() *Config {
 		TeamName:     "",
 		DefaultAgent: "",
 		PollInterval: "200ms",
+		Pane:         PaneConfig{Placement: "current_tab"},
 	}
 }
 
@@ -86,5 +95,8 @@ func applyEnv(cfg *Config) {
 	}
 	if v := os.Getenv("SWARM_DEFAULT_AGENT"); v != "" {
 		cfg.DefaultAgent = v
+	}
+	if v := os.Getenv("SWARM_PANE_PLACEMENT"); v != "" {
+		cfg.Pane.Placement = v
 	}
 }

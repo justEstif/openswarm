@@ -87,7 +87,7 @@ func TestStart_RecordsRun(t *testing.T) {
 	root := newTestRoot(t)
 	b := newMock()
 
-	r, err := run.Start(root, b, "my-build", "go build ./...", nil)
+	r, err := run.Start(root, b, "my-build", "go build ./...", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Start: %v", err)
 	}
@@ -120,7 +120,7 @@ func TestStart_CommandPassedDirectly(t *testing.T) {
 	root := newTestRoot(t)
 	b := newMock()
 
-	_, err := run.Start(root, b, "test", "echo hello", nil)
+	_, err := run.Start(root, b, "test", "echo hello", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Start: %v", err)
 	}
@@ -140,7 +140,7 @@ func TestStart_SpawnError_NoRunPersisted(t *testing.T) {
 		spawnErr: errors.New("tmux not running"),
 	}
 
-	_, err := run.Start(root, b, "test", "echo hi", nil)
+	_, err := run.Start(root, b, "test", "echo hi", pane.SpawnOptions{})
 	if err == nil {
 		t.Fatal("expected error from Start when Spawn fails")
 	}
@@ -161,7 +161,7 @@ func TestWait_SuccessUpdatesStatus(t *testing.T) {
 	root := newTestRoot(t)
 	b := newMock()
 
-	r, err := run.Start(root, b, "build", "make", nil)
+	r, err := run.Start(root, b, "build", "make", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Start: %v", err)
 	}
@@ -193,7 +193,7 @@ func TestWait_NonZeroExitCodeSetsStatusFailed(t *testing.T) {
 		captureOut: "build failed",
 	}
 
-	r, err := run.Start(root, b, "build", "make", nil)
+	r, err := run.Start(root, b, "build", "make", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Start: %v", err)
 	}
@@ -217,7 +217,7 @@ func TestWait_ExitCodePropagation(t *testing.T) {
 		t.Run("exit"+string(rune('0'+code)), func(t *testing.T) {
 			root := newTestRoot(t)
 			b := &mockBackend{spawnID: "p", waitCode: code, captureOut: ""}
-			r, _ := run.Start(root, b, "x", "cmd", nil)
+			r, _ := run.Start(root, b, "x", "cmd", pane.SpawnOptions{})
 			r2, err := run.Wait(root, b, r.ID)
 			if err != nil {
 				t.Fatalf("Wait: %v", err)
@@ -256,7 +256,7 @@ func TestWait_CompleteSignalDetected(t *testing.T) {
 		captureOut: "some output\n<promise>COMPLETE</promise>\nmore output",
 	}
 
-	r, err := run.Start(root, b, "agent", "run agent", nil)
+	r, err := run.Start(root, b, "agent", "run agent", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Start: %v", err)
 	}
@@ -279,7 +279,7 @@ func TestWait_CompleteSignalAbsent(t *testing.T) {
 		captureOut: "normal output, no signal here",
 	}
 
-	r, _ := run.Start(root, b, "agent", "run agent", nil)
+	r, _ := run.Start(root, b, "agent", "run agent", pane.SpawnOptions{})
 	r2, err := run.Wait(root, b, r.ID)
 	if err != nil {
 		t.Fatalf("Wait: %v", err)
@@ -299,7 +299,7 @@ func TestList_NewestFirst(t *testing.T) {
 	// Start three runs with small delays to ensure distinct StartedAt.
 	var ids []string
 	for i := 0; i < 3; i++ {
-		r, err := run.Start(root, b, "run", "cmd", nil)
+		r, err := run.Start(root, b, "run", "cmd", pane.SpawnOptions{})
 		if err != nil {
 			t.Fatalf("Start[%d]: %v", i, err)
 		}
@@ -343,7 +343,7 @@ func TestGet_ReturnsRun(t *testing.T) {
 	root := newTestRoot(t)
 	b := newMock()
 
-	r, _ := run.Start(root, b, "fetch", "curl example.com", nil)
+	r, _ := run.Start(root, b, "fetch", "curl example.com", pane.SpawnOptions{})
 
 	got, err := run.Get(root, r.ID)
 	if err != nil {
@@ -376,7 +376,7 @@ func TestKill_MarksRunKilled(t *testing.T) {
 	root := newTestRoot(t)
 	b := newMock()
 
-	r, err := run.Start(root, b, "long", "sleep 999", nil)
+	r, err := run.Start(root, b, "long", "sleep 999", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Start: %v", err)
 	}
@@ -401,7 +401,7 @@ func TestKill_ClosesPane(t *testing.T) {
 	root := newTestRoot(t)
 	b := newMock()
 
-	r, _ := run.Start(root, b, "proc", "cmd", nil)
+	r, _ := run.Start(root, b, "proc", "cmd", pane.SpawnOptions{})
 	_ = run.Kill(root, b, r.ID)
 
 	if len(b.closed) != 1 {
@@ -435,7 +435,7 @@ func TestLogs_CompletedRunReturnsStoredOutput(t *testing.T) {
 	root := newTestRoot(t)
 	b := &mockBackend{spawnID: "p5", waitCode: 0, captureOut: "stored output"}
 
-	r, _ := run.Start(root, b, "x", "cmd", nil)
+	r, _ := run.Start(root, b, "x", "cmd", pane.SpawnOptions{})
 	_, _ = run.Wait(root, b, r.ID)
 
 	logs, err := run.Logs(root, b, r.ID)
@@ -451,7 +451,7 @@ func TestLogs_RunningRunCallsCapture(t *testing.T) {
 	root := newTestRoot(t)
 	b := &mockBackend{spawnID: "p6", captureOut: "live output"}
 
-	r, err := run.Start(root, b, "live", "watch logs", nil)
+	r, err := run.Start(root, b, "live", "watch logs", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Start: %v", err)
 	}
@@ -471,7 +471,7 @@ func TestRunsSerialisedToJSON(t *testing.T) {
 	root := newTestRoot(t)
 	b := newMock()
 
-	r, _ := run.Start(root, b, "build", "go build", nil)
+	r, _ := run.Start(root, b, "build", "go build", pane.SpawnOptions{})
 	_, _ = run.Wait(root, b, r.ID)
 
 	// Read the raw file and verify it is valid JSON.
@@ -492,7 +492,7 @@ func TestLockFileCreated(t *testing.T) {
 	root := newTestRoot(t)
 	b := newMock()
 
-	_, _ = run.Start(root, b, "x", "cmd", nil)
+	_, _ = run.Start(root, b, "x", "cmd", pane.SpawnOptions{})
 
 	lockFile := filepath.Join(filepath.Dir(root.RunsPath()), ".lock")
 	if _, err := os.Stat(lockFile); os.IsNotExist(err) {

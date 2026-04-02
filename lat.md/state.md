@@ -57,6 +57,10 @@ Environment variables:
 - `$SWARM_DIR` — override project root (the directory containing `.swarm/`)
 - `$SWARM_BACKEND` — force a specific multiplexer backend
 - `$SWARM_AGENT_ID` — implicit sender/recipient for `swarm msg` commands
+- `$SWARM_PANE_PLACEMENT` — override `[pane] placement` config key
+
+Config keys:
+- `[pane] placement` — where new panes are created: `"current_tab"` (default), `"new_tab"`, `"new_session"`
 
 ## ETag / Optimistic Locking
 

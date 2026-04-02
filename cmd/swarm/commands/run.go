@@ -24,9 +24,11 @@ var RunCmd = &cobra.Command{
 func init() {
 	RunCmd.Flags().String("name", "", "Human label for the run (default: run ID)")
 	RunCmd.Flags().Bool("wait", false, "Block until the pane exits (default: fire-and-forget)")
+	RunCmd.Flags().String("placement", "", "Where to open the pane: current_tab (default), new_tab, new_session")
 
 	runStartCmd.Flags().String("name", "", "Human label for the run (default: run ID)")
 	runStartCmd.Flags().Bool("wait", false, "Block until the pane exits (default: fire-and-forget)")
+	runStartCmd.Flags().String("placement", "", "Where to open the pane: current_tab (default), new_tab, new_session")
 
 	RunCmd.AddCommand(runStartCmd)
 	RunCmd.AddCommand(runListCmd)
@@ -51,11 +53,22 @@ func runStartWait(cmd *cobra.Command, args []string) error {
 	wait, _ := cmd.Flags().GetBool("wait")
 	cmdStr := strings.Join(args, " ")
 
-	// Pass the caller's PATH into the spawned pane so tools managed by mise/nvm/pyenv
-	// are available even though the multiplexer shell doesn't source the user profile.
-	env := map[string]string{"PATH": os.Getenv("PATH")}
+	// Resolve placement: CLI flag overrides config, config overrides default.
+	placement := pane.Placement(cfg.Pane.Placement)
+	if p, _ := cmd.Flags().GetString("placement"); p != "" {
+		placement = pane.Placement(p)
+	}
 
-	r, err := run.Start(root, b, name, cmdStr, env)
+	opts := pane.SpawnOptions{
+		// Pass the caller's PATH so mise/nvm/pyenv tools are available in the pane.
+		Env:       map[string]string{"PATH": os.Getenv("PATH")},
+		Placement: placement,
+		// Close on exit for fire-and-forget; keep pane open when --wait is used
+		// so output can be captured after the command finishes.
+		CloseOnExit: !wait,
+	}
+
+	r, err := run.Start(root, b, name, cmdStr, opts)
 	if err != nil {
 		output.PrintError(err, jsonFlag(cmd))
 		return nil

@@ -17,9 +17,13 @@ Wait(id PaneID) (int, error)
 Name() string
 ```
 
-`SpawnOptions` carries `Env map[string]string` and `CloseOnExit bool`. When `CloseOnExit` is true, the backend closes the pane as soon as its command exits — Zellij uses its native `--close-on-exit` / `-c` flag; tmux and WezTerm close by default so it is a no-op there.
+`SpawnOptions` carries `Env map[string]string`, `CloseOnExit bool`, and `Placement Placement`.
 
-`Close()` is idempotent — no error if the pane is already gone. `Wait()` returns 0 when the pane disappears before exit status is readable (expected with `CloseOnExit`). **Shell-wrapping contract**: each backend wraps `cmd` in its own `sh -c` internally; callers must pass the raw command string and must NOT pre-wrap it. Double-wrapping causes `sh: command not found` errors.
+`Placement` controls where the pane is created: `current_tab` (default, split in active tab), `new_tab` (dedicated new tab/window), or `new_session` (brand-new session). Each backend maps these to its native concepts (Zellij: tab/session; tmux: split-window/new-window/new-session).
+
+When `CloseOnExit` is true each backend injects a cleanup trailer appropriate to the placement: `current_tab` uses Zellij's native `-c` flag or a `tmux kill-pane` trailer; `new_tab` appends `zellij action close-tab-by-id <id>` or `tmux kill-window`; `new_session` appends `zellij kill-session` or `tmux kill-session`. This ensures the container (tab/session) self-destructs and leaves no dangling UI.
+
+`Close()` is idempotent — no error if the pane is already gone. `Wait()` returns 0 when the pane disappears before exit status is readable (expected with `CloseOnExit`). **Shell-wrapping contract**: each backend wraps `cmd` in its own `sh -c` internally; callers must pass the raw command string and must NOT pre-wrap it.
 
 ## Backend Registration
 

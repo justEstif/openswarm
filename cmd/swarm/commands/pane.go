@@ -17,6 +17,7 @@ var PaneCmd = &cobra.Command{
 }
 
 func init() {
+	paneSpawnCmd.Flags().String("placement", "", "Where to open: current_tab (default), new_tab, new_session")
 	PaneCmd.AddCommand(paneSpawnCmd)
 	PaneCmd.AddCommand(paneSendCmd)
 	PaneCmd.AddCommand(paneCaptureCmd)
@@ -44,10 +45,18 @@ var paneSpawnCmd = &cobra.Command{
 		if !ok {
 			return nil
 		}
+		_, cfg := mustRoot(cmd)
 		name := args[0]
 		cmdStr := strings.Join(args[1:], " ")
+
+		// Resolve placement: CLI flag > config > default.
+		placement := pane.Placement(cfg.Pane.Placement)
+		if p, _ := cmd.Flags().GetString("placement"); p != "" {
+			placement = pane.Placement(p)
+		}
+
 		// Interactive pane — do NOT close on exit so the user can inspect output.
-		id, err := b.Spawn(name, cmdStr, pane.SpawnOptions{})
+		id, err := b.Spawn(name, cmdStr, pane.SpawnOptions{Placement: placement})
 		if err != nil {
 			output.PrintError(err, jsonFlag(cmd))
 			return nil

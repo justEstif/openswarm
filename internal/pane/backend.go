@@ -35,13 +35,34 @@ type PaneInfo struct {
 	Command string
 }
 
+// Placement controls where a new pane is created within the multiplexer.
+type Placement string
+
+const (
+	// PlacementCurrentTab creates a split pane inside the active tab/window (default).
+	// Zellij: new-pane. tmux: split-window.
+	PlacementCurrentTab Placement = "current_tab"
+
+	// PlacementNewTab opens the pane in a dedicated new tab/window.
+	// Zellij: new-tab + new-pane. tmux: new-window.
+	PlacementNewTab Placement = "new_tab"
+
+	// PlacementNewSession opens the pane in a brand-new session.
+	// Zellij: new session (via ZELLIJ_SESSION_NAME self-cleanup). tmux: new-session.
+	PlacementNewSession Placement = "new_session"
+)
+
 // SpawnOptions configures optional behaviour when creating a pane.
 type SpawnOptions struct {
 	// Env holds extra environment variables injected into the pane.
 	Env map[string]string
 
-	// CloseOnExit closes the pane automatically when its command exits.
-	// Set true for ephemeral background runs; leave false for interactive / long-lived panes.
+	// Placement controls where the pane is created. Defaults to PlacementCurrentTab.
+	Placement Placement
+
+	// CloseOnExit closes the pane (and its container tab/session) when the command exits.
+	// For ephemeral background runs set this to true; for interactive panes leave it false.
+	// When true each backend injects the appropriate cleanup trailer for the given Placement.
 	CloseOnExit bool
 }
 

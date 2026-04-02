@@ -72,27 +72,47 @@ func tmuxRun(args ...string) error {
 	return nil
 }
 
-// Spawn creates a new pane running cmd with the given env vars.
+// Spawn creates a new tmux pane running cmd.
 //
-// If $TMUX is set, a new window is created in the current session.
-// Otherwise a new detached session named "swarm-<random>" is created.
-// remain-on-exit is enabled on the pane so Wait can read the exit code.
-// Spawn creates a new tmux window running cmd.
-// opts.CloseOnExit is a no-op for tmux: windows already close when their command exits
-// (remain-on-exit defaults to off).
+// opts.Placement controls where the pane is created:
+//   - PlacementCurrentTab: split-window in the active window (split pane).
+//   - PlacementNewTab (default): new-window in the current session (or a new
+//     detached session when not inside tmux).
+//   - PlacementNewSession: always creates a fresh detached session.
+//
+// When opts.CloseOnExit is true a shell cleanup trailer is appended to the
+// command so the container (pane / window / session) self-destructs on exit.
+// remain-on-exit is set only when CloseOnExit is false, so Wait() can read
+// the exit code after the process finishes.
 func (b *TmuxBackend) Spawn(name, cmd string, opts pane.SpawnOptions) (pane.PaneID, error) {
 	fullCmd := buildEnvCmd(cmd, opts.Env)
+	if opts.CloseOnExit {
+		fullCmd = appendCleanupTrailer(fullCmd, opts.Placement)
+	}
 
 	var rawID string
 	var err error
 
-	if os.Getenv("TMUX") != "" {
-		// Already inside a tmux session — add a new window.
-		rawID, err = tmuxOutput("new-window", "-d", "-n", name, "-P", "-F", "#{pane_id}", fullCmd)
-	} else {
-		// Not inside tmux — create a detached session.
-		sessionName := fmt.Sprintf("swarm-%d", rand.Int63()) //nolint:gosec // session name, not crypto
+	switch opts.Placement {
+	case pane.PlacementCurrentTab:
+		if os.Getenv("TMUX") != "" {
+			// Split a pane within the active window.
+			rawID, err = tmuxOutput("split-window", "-d", "-P", "-F", "#{pane_id}", fullCmd)
+		} else {
+			// No active tmux session — fall back to a new detached session.
+			sessionName := fmt.Sprintf("swarm-%d", rand.Int63()) //nolint:gosec
+			rawID, err = tmuxOutput("new-session", "-d", "-s", sessionName, "-P", "-F", "#{pane_id}", fullCmd)
+		}
+	case pane.PlacementNewSession:
+		sessionName := fmt.Sprintf("swarm-%s", name)
 		rawID, err = tmuxOutput("new-session", "-d", "-s", sessionName, "-P", "-F", "#{pane_id}", fullCmd)
+	default: // PlacementNewTab or ""
+		if os.Getenv("TMUX") != "" {
+			rawID, err = tmuxOutput("new-window", "-d", "-n", name, "-P", "-F", "#{pane_id}", fullCmd)
+		} else {
+			sessionName := fmt.Sprintf("swarm-%d", rand.Int63()) //nolint:gosec
+			rawID, err = tmuxOutput("new-session", "-d", "-s", sessionName, "-P", "-F", "#{pane_id}", fullCmd)
+		}
 	}
 	if err != nil {
 		return "", fmt.Errorf("spawn pane: %w", err)
@@ -100,11 +120,30 @@ func (b *TmuxBackend) Spawn(name, cmd string, opts pane.SpawnOptions) (pane.Pane
 
 	id := pane.PaneID(rawID)
 
-	// Enable remain-on-exit so Wait() can read the exit code after the
-	// process exits.  Non-fatal: Wait() returns -1 if this is not set.
-	_ = tmuxRun("set-option", "-t", string(id), "remain-on-exit", "on")
+	// remain-on-exit lets Wait() read the exit code. Not needed when CloseOnExit
+	// is true: the cleanup trailer kills the container before we'd read it.
+	if !opts.CloseOnExit {
+		_ = tmuxRun("set-option", "-t", string(id), "remain-on-exit", "on")
+	}
 
 	return id, nil
+}
+
+// appendCleanupTrailer appends a shell snippet that destroys the pane's container
+// (pane, window, or session) when the main command exits.
+func appendCleanupTrailer(cmd string, placement pane.Placement) string {
+	var trailer string
+	switch placement {
+	case pane.PlacementCurrentTab:
+		// Kill just this pane (#D is the pane's unique ID).
+		trailer = `tmux kill-pane -t "$(tmux display-message -p '#D')" 2>/dev/null || true`
+	case pane.PlacementNewSession:
+		// Kill the entire session.
+		trailer = `tmux kill-session -t "$(tmux display-message -p '#{session_id}')" 2>/dev/null || true`
+	default: // new_tab — kill the window
+		trailer = `tmux kill-window -t "$(tmux display-message -p '#{window_id}')" 2>/dev/null || true`
+	}
+	return cmd + "; " + trailer
 }
 
 // Send delivers text to a pane's stdin using literal mode (-l flag).
