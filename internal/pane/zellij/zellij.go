@@ -168,7 +168,7 @@ func buildEnvCmd(cmd string, env map[string]string) string {
 
 // singleQuote wraps s in POSIX single quotes, escaping any literal single quotes inside.
 func singleQuote(s string) string {
-	return "'" + strings.ReplaceAll(s, "'", "'\\''")+"'"
+	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }
 
 // ─── Tab / pane discovery helpers ───────────────────────────────────────────
