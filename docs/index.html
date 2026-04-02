@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Open, composable, file-backed primitives for multi-agent terminal orchestration.">
+  <meta property="og:title" content="openswarm">
+  <meta property="og:description" content="Recreates Claude Code's agent-team mode as open primitives — any agent, any multiplexer.">
+  <title>openswarm</title>
+  <link rel="stylesheet" href="https://unpkg.com/missing.css@1.2.0">
+  <style>
+    /* ── Theme ── */
+    :root {
+      --accent:      #22c55e;
+      --accent-dim:  rgba(34,197,94,0.07);
+      --bg:          #0b0b0b;
+      --surface:     #131313;
+      --border:      #1e1e1e;
+      --border-mid:  #252525;
+      --fg:          #e2e2e2;
+      --fg-muted:    #6b6b6b;
+      --fg-faint:    #3d3d3d;
+      --link-fg:     var(--accent);
+      --main-font:   system-ui, -apple-system, sans-serif;
+      --mono-font:   'SF Mono','Fira Code','Cascadia Code',ui-monospace,monospace;
+      --line-length: 60rem;
+      color-scheme: dark;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--fg); margin: 0; }
+    a { color: var(--accent); }
+
+    /* ── Nav ── */
+    .sitenav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(11,11,11,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      height: 3rem;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0 max(1.5rem, calc((100vw - 54rem) / 2));
+      gap: 2rem;
+    }
+    .sitenav-brand {
+      font-family: var(--mono-font);
+      font-weight: 700; font-size: 0.95rem;
+      letter-spacing: -0.02em;
+      color: var(--fg); text-decoration: none;
+    }
+    .sitenav-links {
+      display: flex; gap: 1.5rem; align-items: center;
+      list-style: none; margin: 0; padding: 0;
+    }
+    .sitenav-links a {
+      font-size: 0.82rem; color: var(--fg-muted);
+      text-decoration: none; transition: color 0.15s;
+    }
+    .sitenav-links a:hover { color: var(--fg); }
+
+    /* ── Layout wrap ── */
+    .wrap {
+      max-width: 54rem;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* ── Hero ── */
+    #hero {
+      min-height: calc(100svh - 3rem);
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 6rem 0 5rem;
+    }
+    .hero-eyebrow {
+      font-family: var(--mono-font);
+      font-size: 0.7rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--accent);
+      margin: 0 0 1.5rem;
+      opacity: 0; animation: fadein 0.4s ease forwards 0.05s;
+    }
+    .hero-title {
+      font-family: var(--mono-font);
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      font-weight: 700; letter-spacing: -0.05em;
+      line-height: 1; color: #fff;
+      margin: 0 0 1.25rem;
+      opacity: 0; animation: riseup 0.55s ease forwards 0.15s;
+    }
+    .hero-sub {
+      font-size: 1.05rem; line-height: 1.65;
+      color: var(--fg-muted); max-width: 34rem;
+      margin: 0 0 2.75rem;
+      opacity: 0; animation: fadein 0.5s ease forwards 0.35s;
+    }
+    .install-pill {
+      display: inline-flex; align-items: center; gap: 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border-mid);
+      border-radius: 7px;
+      padding: 0.8rem 1.1rem;
+      font-family: var(--mono-font); font-size: 0.9rem;
+      cursor: pointer; user-select: none;
+      transition: border-color 0.2s, background 0.2s;
+      max-width: max-content;
+      margin-bottom: 2.25rem;
+      opacity: 0; animation: fadein 0.5s ease forwards 0.5s;
+    }
+    .install-pill:hover { border-color: #333; background: #161616; }
+    .install-pill.copied  { border-color: var(--accent); background: var(--accent-dim); }
+    .install-pill .prompt { color: var(--accent); }
+    .install-pill .cmd    { color: var(--fg); }
+    .install-pill .hint   {
+      font-size: 0.68rem; color: var(--fg-faint);
+      margin-left: 0.25rem; transition: color 0.15s;
+    }
+    .install-pill:hover .hint  { color: var(--fg-muted); }
+    .install-pill.copied .hint { color: var(--accent); }
+
+    .hero-actions {
+      display: flex; flex-wrap: wrap; gap: 0.9rem; align-items: center;
+      opacity: 0; animation: fadein 0.5s ease forwards 0.65s;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      font-size: 0.85rem; font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: opacity 0.15s, background 0.15s;
+    }
+    .btn-primary {
+      background: var(--accent); color: #050f0a;
+    }
+    .btn-primary:hover { opacity: 0.88; color: #050f0a; }
+    .btn-ghost {
+      background: transparent; color: var(--fg-muted);
+      border: 1px solid var(--border-mid);
+    }
+    .btn-ghost:hover { color: var(--fg); border-color: #333; }
+
+    /* ── Sections ── */
+    .section {
+      padding: 5rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .section-tag {
+      font-family: var(--mono-font);
+      font-size: 0.68rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--accent);
+      margin: 0 0 1.1rem;
+    }
+    .section-heading {
+      font-size: 1.65rem; font-weight: 600;
+      letter-spacing: -0.025em; color: #fff;
+      margin: 0 0 0.5rem;
+    }
+    .section-lead {
+      font-size: 0.95rem; line-height: 1.65;
+      color: var(--fg-muted); max-width: 32rem;
+      margin: 0 0 2.5rem;
+    }
+
+    /* ── Subsystems ── */
+    .subsystem-list {
+      list-style: none; margin: 0; padding: 0;
+    }
+    .subsystem-item {
+      display: flex; align-items: baseline; gap: 1.5rem;
+      padding: 1.25rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .subsystem-item:last-child { border-bottom: 1px solid var(--border); }
+    .subsystem-item code {
+      font-family: var(--mono-font); font-size: 0.78rem;
+      color: var(--accent); background: transparent; padding: 0;
+      white-space: nowrap; min-width: 8rem; flex-shrink: 0;
+    }
+    .subsystem-item p {
+      margin: 0; font-size: 0.875rem;
+      color: var(--fg-muted); line-height: 1.55;
+    }
+
+    /* ── Multiplexer badges ── */
+    .mx-badges {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      margin-top: 2.5rem;
+    }
+    .mx-badge {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      font-family: var(--mono-font); font-size: 0.72rem;
+      padding: 0.28rem 0.7rem;
+      border-radius: 999px; border: 1px solid var(--border-mid);
+      color: var(--fg-muted);
+    }
+    .mx-badge.live {
+      border-color: #1b3628; color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .mx-badge .dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: currentColor; flex-shrink: 0;
+    }
+
+    /* ── Principles ── */
+    .principle-list { list-style: none; margin: 0; padding: 0; }
+    .principle-item {
+      display: flex; gap: 1.75rem; align-items: flex-start;
+      padding: 1.5rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .principle-item:last-child { border-bottom: 1px solid var(--border); }
+    .principle-n {
+      font-family: var(--mono-font); font-size: 0.68rem;
+      color: var(--fg-faint); min-width: 1.5rem; margin-top: 0.18rem;
+    }
+    .principle-title {
+      font-size: 0.95rem; font-weight: 500; color: var(--fg);
+      margin: 0 0 0.3rem;
+    }
+    .principle-body {
+      font-size: 0.855rem; color: var(--fg-muted);
+      line-height: 1.6; margin: 0;
+    }
+    .principle-body code {
+      font-family: var(--mono-font); font-size: 0.8em;
+      background: transparent; padding: 0; color: inherit;
+    }
+
+    /* ── Quickstart ── */
+    .steps { display: flex; flex-direction: column; gap: 1.75rem; }
+    .step  { display: flex; gap: 1.25rem; align-items: flex-start; }
+    .step-num {
+      width: 1.6rem; height: 1.6rem; flex-shrink: 0;
+      border: 1px solid var(--border-mid); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono-font); font-size: 0.65rem;
+      color: var(--fg-faint); margin-top: 0.15rem;
+    }
+    .step-label {
+      font-size: 0.82rem; font-weight: 500;
+      color: var(--fg-muted); margin: 0 0 0.5rem;
+    }
+    .step pre {
+      margin: 0;
+      background: var(--surface);
+      border: 1px solid var(--border-mid);
+      border-radius: 6px;
+      padding: 0.7rem 1rem;
+      font-family: var(--mono-font); font-size: 0.82rem;
+      color: var(--fg); line-height: 1.7;
+      overflow-x: auto;
+    }
+
+    /* ── Other install methods ── */
+    details {
+      margin-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1.25rem;
+    }
+    summary {
+      cursor: pointer; font-size: 0.82rem; color: var(--fg-muted);
+      list-style: none; user-select: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::before {
+      content: '+ '; font-family: var(--mono-font);
+      color: var(--accent);
+    }
+    details[open] summary::before { content: '− '; }
+    .alt-installs {
+      display: flex; flex-direction: column; gap: 1rem;
+      margin-top: 1.25rem;
+    }
+    .alt-install-label {
+      font-family: var(--mono-font); font-size: 0.65rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--fg-faint); margin-bottom: 0.4rem;
+    }
+    .alt-install-label pre {
+      margin: 0;
+      background: var(--surface);
+      border: 1px solid var(--border-mid);
+      border-radius: 6px;
+      padding: 0.65rem 1rem;
+      font-family: var(--mono-font); font-size: 0.82rem;
+      color: var(--fg);
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 0;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 1rem;
+      font-size: 0.78rem; color: var(--fg-faint);
+    }
+    footer a { color: var(--fg-faint); text-decoration: none; transition: color 0.15s; }
+    footer a:hover { color: var(--fg-muted); }
+    .footer-links { display: flex; gap: 1.5rem; }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ── Animations ── */
+    @keyframes fadein {
+      to { opacity: 1; }
+    }
+    @keyframes riseup {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 540px) {
+      .hero-title { letter-spacing: -0.04em; }
+      .hero-actions { flex-direction: column; align-items: flex-start; }
+      .subsystem-item { flex-direction: column; gap: 0.35rem; }
+      .subsystem-item code { min-width: unset; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <header class="sitenav">
+    <a class="sitenav-brand" href="/">openswarm</a>
+    <ul class="sitenav-links">
+      <li><a href="#subsystems">Subsystems</a></li>
+      <li><a href="#quickstart">Quickstart</a></li>
+      <li><a href="https://github.com/justEstif/openswarm" target="_blank" rel="noopener">GitHub ↗</a></li>
+    </ul>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <div class="wrap">
+      <section id="hero">
+        <p class="hero-eyebrow">v0.1.1 &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; Go + npm</p>
+        <h1 class="hero-title">openswarm</h1>
+        <p class="hero-sub">
+          Open, composable, file-backed primitives for multi-agent terminal orchestration.
+          Any agent. Any multiplexer. No daemons.
+        </p>
+
+        <div class="install-pill" id="install-pill" role="button" tabindex="0"
+             aria-label="Copy install command">
+          <span class="prompt">$</span>
+          <span class="cmd">npm install -g @justestif/openswarm</span>
+          <span class="hint">click to copy</span>
+        </div>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/justEstif/openswarm" target="_blank" rel="noopener">
+            View on GitHub ↗
+          </a>
+          <a class="btn btn-ghost" href="#quickstart">
+            Get started
+          </a>
+          <a class="btn btn-ghost" href="https://www.npmjs.com/package/@justestif/openswarm" target="_blank" rel="noopener">
+            npm ↗
+          </a>
+        </div>
+      </section>
+    </div>
+
+    <!-- Subsystems -->
+    <div class="wrap">
+      <section id="subsystems" class="section reveal">
+        <p class="section-tag">subsystems</p>
+        <h2 class="section-heading">Everything your swarm needs</h2>
+        <p class="section-lead">One binary. Five primitives. All state in <code style="font-family:var(--mono-font);font-size:0.9em;background:transparent;padding:0;color:inherit">.swarm/</code> — no services to run.</p>
+
+        <ul class="subsystem-list">
+          <li class="subsystem-item">
+            <code>swarm msg</code>
+            <p>Agent-to-agent messaging via lock-free inbox files. Threaded replies, unread tracking, inbox watch.</p>
+          </li>
+          <li class="subsystem-item">
+            <code>swarm task</code>
+            <p>Shared task queue with atomic flock-safe mutations. Assign, claim, block, complete, fail.</p>
+          </li>
+          <li class="subsystem-item">
+            <code>swarm pane</code>
+            <p>Spawn, capture, send keystrokes to terminal panes across tmux, Zellij, and WezTerm.</p>
+          </li>
+          <li class="subsystem-item">
+            <code>swarm run</code>
+            <p>Run a command in a managed pane. Fire-and-forget or block until exit. PATH and env inherited.</p>
+          </li>
+          <li class="subsystem-item">
+            <code>swarm worktree</code>
+            <p>Git worktree lifecycle tied to agent identity. Merge and clean when the work is done.</p>
+          </li>
+          <li class="subsystem-item">
+            <code>swarm events</code>
+            <p>Tail the shared append-only event log across all subsystems. Filter by type.</p>
+          </li>
+        </ul>
+
+        <div class="mx-badges">
+          <span class="mx-badge live"><span class="dot"></span>tmux</span>
+          <span class="mx-badge live"><span class="dot"></span>Zellij ≥ 0.44</span>
+          <span class="mx-badge live"><span class="dot"></span>WezTerm</span>
+          <span class="mx-badge"><span class="dot"></span>Kitty (planned)</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- Design -->
+    <div class="wrap">
+      <section id="design" class="section reveal">
+        <p class="section-tag">design</p>
+        <h2 class="section-heading">Built like Claude Code's internals</h2>
+        <p class="section-lead">The same file-backed, daemon-free architecture used by Claude Code's agent teams — available outside Claude Code.</p>
+
+        <ul class="principle-list">
+          <li class="principle-item">
+            <span class="principle-n">01</span>
+            <div>
+              <p class="principle-title">File-backed everything</p>
+              <p class="principle-body">No daemons, no sockets. Atomic writes, <code>flock()</code> for all mutations. State survives crashes and is readable by any tool.</p>
+            </div>
+          </li>
+          <li class="principle-item">
+            <span class="principle-n">02</span>
+            <div>
+              <p class="principle-title">Agent-friendly by default</p>
+              <p class="principle-body"><code>--json</code> on every command. Machine-readable exit codes. Designed to be called from agent sessions, not just humans at a terminal.</p>
+            </div>
+          </li>
+          <li class="principle-item">
+            <span class="principle-n">03</span>
+            <div>
+              <p class="principle-title">Multiplexer-agnostic</p>
+              <p class="principle-body">Eight-method <code>Backend</code> interface. Swap tmux for Zellij without changing a single caller. WezTerm, Kitty, and others plug in the same way.</p>
+            </div>
+          </li>
+          <li class="principle-item">
+            <span class="principle-n">04</span>
+            <div>
+              <p class="principle-title">Pull complexity downward</p>
+              <p class="principle-body">CLI handlers are &lt;15 lines. All logic lives in <code>internal/</code> — tested in isolation, never entangled with flag parsing.</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </div>
+
+    <!-- Quickstart -->
+    <div class="wrap">
+      <section id="quickstart" class="section reveal">
+        <p class="section-tag">quickstart</p>
+        <h2 class="section-heading">Up in 30 seconds</h2>
+        <p class="section-lead">Requires tmux, Zellij, or WezTerm for pane commands. Everything else works standalone.</p>
+
+        <div class="steps">
+          <div class="step">
+            <span class="step-num">1</span>
+            <div>
+              <p class="step-label">Install</p>
+              <pre>npm install -g @justestif/openswarm</pre>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step-num">2</span>
+            <div>
+              <p class="step-label">Initialize your project</p>
+              <pre>cd your-project
+swarm init</pre>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step-num">3</span>
+            <div>
+              <p class="step-label">Register, add tasks, and spawn agents</p>
+              <pre>swarm agent register coder
+swarm task add "implement the auth module"
+swarm run start -- claude --print "$(swarm prompt)"</pre>
+            </div>
+          </div>
+        </div>
+
+        <details>
+          <summary>Other install methods</summary>
+          <div class="alt-installs">
+            <div>
+              <p class="alt-install-label">Homebrew</p>
+              <pre>brew install justEstif/tap/openswarm</pre>
+            </div>
+            <div>
+              <p class="alt-install-label">Go</p>
+              <pre>go install github.com/justEstif/openswarm/cmd/swarm@latest</pre>
+            </div>
+            <div>
+              <p class="alt-install-label">mise</p>
+              <pre>[tools]
+"npm:@justestif/openswarm" = "latest"</pre>
+            </div>
+          </div>
+        </details>
+      </section>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <div class="wrap">
+    <footer>
+      <span>openswarm &nbsp;·&nbsp; MIT License</span>
+      <div class="footer-links">
+        <a href="https://github.com/justEstif/openswarm" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.npmjs.com/package/@justestif/openswarm" target="_blank" rel="noopener">npm</a>
+        <a href="https://github.com/justEstif/openswarm/tree/main/extras" target="_blank" rel="noopener">Extras</a>
+        <a href="https://github.com/justEstif/openswarm/tree/main/docs" target="_blank" rel="noopener">Docs</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // ── Copy to clipboard ──────────────────────────────────────────────
+    const pill = document.getElementById('install-pill');
+    function doCopy() {
+      navigator.clipboard.writeText('npm install -g @justestif/openswarm').then(() => {
+        pill.classList.add('copied');
+        pill.querySelector('.hint').textContent = 'copied!';
+        setTimeout(() => {
+          pill.classList.remove('copied');
+          pill.querySelector('.hint').textContent = 'click to copy';
+        }, 2200);
+      }).catch(() => {});
+    }
+    pill.addEventListener('click', doCopy);
+    pill.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') doCopy(); });
+
+    // ── Scroll reveal ──────────────────────────────────────────────────
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  </script>
+</body>
+</html>

@@ -48,6 +48,12 @@ Install by copying to `~/.config/opencode/plugins/` or `.opencode/plugins/`, or 
 
 Install by copying to `~/.pi/agent/extensions/` (global) or `.pi/extensions/` (project-local).
 
+## Static Site
+
+`docs/index.html` — GitHub Pages landing page for the project.
+
+Deployed automatically via `.github/workflows/pages.yml` on every push to `main` that touches `docs/`. Covers hero with install command, subsystems, design principles, and quickstart. Pure HTML + missing.css + vanilla JS; no build step.
+
 ## Multiplexer Note
 
 `swarm msg`, `swarm task`, `swarm agent`, `swarm events`, and `swarm status` work without any multiplexer. Only `swarm pane` and `swarm run` require one. [[internal/pane/detect.go#DetectBackend]] returns a clear error if none is detected.
