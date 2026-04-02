@@ -10,6 +10,8 @@ Follows progressive disclosure: agents load only the description at startup and 
 
 > **Note on `msg` commands:** `msg send` requires `--subject` and `--body` flags (no positional text). `msg read` and `msg reply` both take `<agent> <msg-id>` — the agent argument is required for inbox routing.
 
+> **Note on `swarm run`:** Non-blocking by default since PATH-inherit fix (v0.1.2). Use `--wait` to block. PATH is automatically forwarded from the calling process to the spawned pane, so mise/nvm/pyenv tools are available without manual workarounds. Put complex commands (with parens, quotes, `&&`) in a `.sh` file rather than inline args to avoid shell-quoting issues.
+
 ## Claude Code
 
 `extras/claude-code/settings.json` — a `SessionStart` hook that runs `swarm init` on every project startup. Drop it into `.claude/settings.json`.

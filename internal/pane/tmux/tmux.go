@@ -77,8 +77,11 @@ func tmuxRun(args ...string) error {
 // If $TMUX is set, a new window is created in the current session.
 // Otherwise a new detached session named "swarm-<random>" is created.
 // remain-on-exit is enabled on the pane so Wait can read the exit code.
-func (b *TmuxBackend) Spawn(name, cmd string, env map[string]string) (pane.PaneID, error) {
-	fullCmd := buildEnvCmd(cmd, env)
+// Spawn creates a new tmux window running cmd.
+// opts.CloseOnExit is a no-op for tmux: windows already close when their command exits
+// (remain-on-exit defaults to off).
+func (b *TmuxBackend) Spawn(name, cmd string, opts pane.SpawnOptions) (pane.PaneID, error) {
+	fullCmd := buildEnvCmd(cmd, opts.Env)
 
 	var rawID string
 	var err error

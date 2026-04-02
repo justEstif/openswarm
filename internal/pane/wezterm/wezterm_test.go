@@ -118,7 +118,7 @@ func TestSpawnAndClose(t *testing.T) {
 		t.Fatalf("pane.New: %v", err)
 	}
 
-	id, err := b.Spawn("test-pane", "true", nil)
+	id, err := b.Spawn("test-pane", "true", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Spawn: %v", err)
 	}
@@ -158,7 +158,7 @@ func TestSubscribeContextCancel(t *testing.T) {
 		t.Fatalf("pane.New: %v", err)
 	}
 
-	id, err := b.Spawn("sub-test", "sleep 60", nil)
+	id, err := b.Spawn("sub-test", "sleep 60", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Spawn: %v", err)
 	}
@@ -227,7 +227,7 @@ func TestSubscribeExitEvent(t *testing.T) {
 	}
 
 	// Spawn a pane that exits quickly.
-	id, err := b.Spawn("exit-test", "sleep 0.1", nil)
+	id, err := b.Spawn("exit-test", "sleep 0.1", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Spawn: %v", err)
 	}

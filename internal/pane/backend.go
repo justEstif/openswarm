@@ -35,12 +35,22 @@ type PaneInfo struct {
 	Command string
 }
 
+// SpawnOptions configures optional behaviour when creating a pane.
+type SpawnOptions struct {
+	// Env holds extra environment variables injected into the pane.
+	Env map[string]string
+
+	// CloseOnExit closes the pane automatically when its command exits.
+	// Set true for ephemeral background runs; leave false for interactive / long-lived panes.
+	CloseOnExit bool
+}
+
 // Backend is the multiplexer abstraction. Callers import only "internal/pane".
 // Drivers (tmux, zellij, wezterm, ghostty) register via pane.Register() in their init().
 type Backend interface {
-	// Spawn creates a new pane running cmd with the given env vars.
+	// Spawn creates a new pane running cmd.
 	// Returns the pane ID once the pane shell is ready.
-	Spawn(name, cmd string, env map[string]string) (PaneID, error)
+	Spawn(name, cmd string, opts SpawnOptions) (PaneID, error)
 
 	// Send delivers text to a pane's stdin (no implicit newline).
 	Send(id PaneID, text string) error

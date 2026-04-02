@@ -223,7 +223,7 @@ func TestSpawnAndClose_Integration(t *testing.T) {
 	}
 	b := &TmuxBackend{}
 
-	id, err := b.Spawn("test-pane", "sleep 60", nil)
+	id, err := b.Spawn("test-pane", "sleep 60", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Spawn: %v", err)
 	}
@@ -247,7 +247,7 @@ func TestSendAndCapture_Integration(t *testing.T) {
 	}
 	b := &TmuxBackend{}
 
-	id, err := b.Spawn("cap-test", "cat", nil)
+	id, err := b.Spawn("cap-test", "cat", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Spawn: %v", err)
 	}
@@ -276,7 +276,7 @@ func TestList_Integration(t *testing.T) {
 	}
 	b := &TmuxBackend{}
 
-	id, err := b.Spawn("list-test", "sleep 30", nil)
+	id, err := b.Spawn("list-test", "sleep 30", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Spawn: %v", err)
 	}
@@ -306,7 +306,7 @@ func TestWait_Integration(t *testing.T) {
 	b := &TmuxBackend{}
 
 	// A command that exits quickly with a known code.
-	id, err := b.Spawn("wait-test", "exit 42", nil)
+	id, err := b.Spawn("wait-test", "exit 42", pane.SpawnOptions{})
 	if err != nil {
 		t.Fatalf("Spawn: %v", err)
 	}

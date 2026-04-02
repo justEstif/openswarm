@@ -110,9 +110,10 @@ func findIdx(runs []*Run, id string) int {
 // Start spawns a new pane via b.Spawn, records the run in runs.json, and emits
 // a run.started event. name is the human label; cmd is the full command string
 // passed directly to b.Spawn (backends handle their own sh -c wrapping); env is
-// passed through to Spawn.
+// passed through to Spawn. Panes are always closed on exit (ephemeral by design).
 func Start(root *swarmfs.Root, b pane.Backend, name, cmd string, env map[string]string) (*Run, error) {
-	pid, err := b.Spawn(name, cmd, env)
+	opts := pane.SpawnOptions{Env: env, CloseOnExit: true}
+	pid, err := b.Spawn(name, cmd, opts)
 	if err != nil {
 		return nil, fmt.Errorf("run: spawn: %w", err)
 	}
@@ -174,9 +175,13 @@ func Wait(root *swarmfs.Root, b pane.Backend, id string) (*Run, error) {
 	// Capture final output.
 	capturedOutput, captureErr := b.Capture(pid)
 	if captureErr != nil {
-		// Non-fatal: record what we have.
+		// Non-fatal: pane may have already been closed by CloseOnExit.
 		capturedOutput = ""
 	}
+
+	// Close the pane now that we've captured output.
+	// Idempotent: no error if already closed (e.g. Zellij CloseOnExit).
+	_ = b.Close(pid)
 
 	now := time.Now().UTC()
 

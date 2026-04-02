@@ -31,7 +31,7 @@ func TestName(t *testing.T) {
 // TestSpawnNotSupported verifies Spawn returns ErrNotSupported.
 func TestSpawnNotSupported(t *testing.T) {
 	b, _ := pane.New("ghostty")
-	_, err := b.Spawn("test", "echo hi", nil)
+	_, err := b.Spawn("test", "echo hi", pane.SpawnOptions{})
 	assertNotSupported(t, "Spawn", err)
 }
 

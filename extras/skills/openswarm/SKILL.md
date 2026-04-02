@@ -58,14 +58,40 @@ swarm pane send <pane-id> "command"    # send keystrokes to a pane
 swarm pane capture <pane-id>           # read pane output
 swarm pane close <pane-id>
 
-swarm run start [--name <name>] -- <cmd>  # run command in a managed pane
+swarm run start [--name <name>] -- <cmd>       # spawn (non-blocking by default)
+swarm run start [--name <name>] --wait -- <cmd> # spawn and block until done
 swarm run wait <run-id>                # block until run finishes
 swarm run list
 swarm run logs <run-id>
 swarm run kill <run-id>
 ```
 
+`swarm run start` is **non-blocking by default** — it returns immediately after spawning.
+Use `--wait` to block until the pane exits, or `swarm run wait <id>` to join later.
+
+The caller's `PATH` is automatically forwarded to the spawned pane, so tools managed
+by mise, nvm, pyenv, etc. are available without any manual setup.
+
+Run panes **close automatically** when their command exits — no hanging terminal windows.
+Interactive panes created with `swarm pane spawn` are kept open.
+
 Signal run completion from inside the pane by printing `<promise>COMPLETE</promise>`.
+
+### Quoting tip — use script files for complex commands
+
+Long prompts with parens, quotes, or `&&` cause shell-parsing errors when passed as
+CLI args. Write the command to a `.sh` file and invoke it:
+```bash
+# ✗ breaks — shell parses the parens before swarm sees them
+swarm run start -- pi --print "Research X (latest trends)"
+
+# ✓ works — no quoting issues, PATH already inherited
+cat > /tmp/my-task.sh << 'EOF'
+#!/bin/sh
+pi --print "Research X (latest trends)"
+EOF
+swarm run start --name my-task -- sh /tmp/my-task.sh
+```
 
 ## Worktrees
 

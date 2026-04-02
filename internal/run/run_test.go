@@ -29,7 +29,7 @@ type mockBackend struct {
 	spawned    []string // commands that were spawned
 }
 
-func (m *mockBackend) Spawn(name, cmd string, env map[string]string) (pane.PaneID, error) {
+func (m *mockBackend) Spawn(name, cmd string, opts pane.SpawnOptions) (pane.PaneID, error) {
 	m.spawned = append(m.spawned, cmd)
 	return m.spawnID, m.spawnErr
 }

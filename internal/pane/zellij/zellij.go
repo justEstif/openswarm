@@ -43,12 +43,17 @@ func paneInt(id pane.PaneID) string {
 
 // Spawn creates a new Zellij pane running cmd under the given name.
 // Environment variables are injected via the `env K=V ...` prefix on the command.
+// When opts.CloseOnExit is true, the pane is closed the moment its command exits.
 // Returns the pane ID (e.g. "terminal_5").
-func (b *ZellijBackend) Spawn(name, cmd string, env map[string]string) (pane.PaneID, error) {
+func (b *ZellijBackend) Spawn(name, cmd string, opts pane.SpawnOptions) (pane.PaneID, error) {
 	// Build the full command with env prefix: "env KEY1=VAL1 KEY2=VAL2 <cmd>"
-	fullCmd := buildEnvCmd(cmd, env)
+	fullCmd := buildEnvCmd(cmd, opts.Env)
 
-	args := []string{"action", "new-pane", "--name", name, "--", "sh", "-c", fullCmd}
+	args := []string{"action", "new-pane", "--name", name}
+	if opts.CloseOnExit {
+		args = append(args, "-c") // --close-on-exit
+	}
+	args = append(args, "--", "sh", "-c", fullCmd)
 	out, err := exec.Command("zellij", args...).Output()
 	if err != nil {
 		return "", fmt.Errorf("zellij new-pane: %w", err)
@@ -375,7 +380,8 @@ func (b *ZellijBackend) Wait(id pane.PaneID) (int, error) {
 
 		if !found {
 			// Pane disappeared before exit_status was visible.
-			return -1, nil
+			// This is expected when CloseOnExit is set — the pane closes cleanly.
+			return 0, nil
 		}
 	}
 

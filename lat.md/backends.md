@@ -7,7 +7,7 @@ The multiplexer backend abstraction lets `swarm pane` and `swarm run` work ident
 The [[internal/pane/backend.go#Backend]] interface has exactly 8 methods — defined by swarm's use cases, not by multiplexer capabilities. A 40-method shallow interface would expose the multiplexer's model; 8 methods hide it.
 
 ```go
-Spawn(name, cmd string, env map[string]string) (PaneID, error)
+Spawn(name, cmd string, opts SpawnOptions) (PaneID, error)
 Send(id PaneID, text string) error
 Capture(id PaneID) (string, error)
 Subscribe(ctx context.Context, id PaneID) (<-chan OutputEvent, error)
@@ -17,7 +17,9 @@ Wait(id PaneID) (int, error)
 Name() string
 ```
 
-`Close()` is idempotent — no error if the pane is already gone. `Wait()` returns -1 for exit code when the backend cannot provide it (WezTerm). **Shell-wrapping contract**: each backend wraps `cmd` in its own `sh -c` internally; callers must pass the raw command string and must NOT pre-wrap it. Double-wrapping causes `sh: command not found` errors.
+`SpawnOptions` carries `Env map[string]string` and `CloseOnExit bool`. When `CloseOnExit` is true, the backend closes the pane as soon as its command exits — Zellij uses its native `--close-on-exit` / `-c` flag; tmux and WezTerm close by default so it is a no-op there.
+
+`Close()` is idempotent — no error if the pane is already gone. `Wait()` returns 0 when the pane disappears before exit status is readable (expected with `CloseOnExit`). **Shell-wrapping contract**: each backend wraps `cmd` in its own `sh -c` internally; callers must pass the raw command string and must NOT pre-wrap it. Double-wrapping causes `sh: command not found` errors.
 
 ## Backend Registration
 

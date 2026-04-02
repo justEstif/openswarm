@@ -35,7 +35,9 @@ func (w *WeztermBackend) Name() string { return "wezterm" }
 // Spawn creates a new WezTerm pane running cmd.
 // Env vars are injected by wrapping cmd in `sh -c 'export K=V; ...; exec cmd'`.
 // The tab title is set to name after the pane is created.
-func (w *WeztermBackend) Spawn(name, cmd string, env map[string]string) (pane.PaneID, error) {
+// opts.CloseOnExit is a no-op for WezTerm: tabs already close when their process exits.
+func (w *WeztermBackend) Spawn(name, cmd string, opts pane.SpawnOptions) (pane.PaneID, error) {
+	env := opts.Env
 	// Build env prefix: export K=V K2=V2; exec cmd
 	var sb strings.Builder
 	for k, v := range env {

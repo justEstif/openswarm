@@ -46,7 +46,8 @@ var paneSpawnCmd = &cobra.Command{
 		}
 		name := args[0]
 		cmdStr := strings.Join(args[1:], " ")
-		id, err := b.Spawn(name, cmdStr, nil)
+		// Interactive pane — do NOT close on exit so the user can inspect output.
+		id, err := b.Spawn(name, cmdStr, pane.SpawnOptions{})
 		if err != nil {
 			output.PrintError(err, jsonFlag(cmd))
 			return nil

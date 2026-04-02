@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -12,19 +13,20 @@ import (
 )
 
 // RunCmd is the `swarm run` command.
-// With no subcommand it spawns + waits (blocking). Subcommands manage existing runs.
+// With no subcommand it spawns and returns immediately (fire-and-forget).
+// Use --wait to block until the pane exits, or `swarm run wait <id>` later.
 var RunCmd = &cobra.Command{
-	Use:   "run [--name n] [--no-wait] -- <cmd...>",
-	Short: "Spawn a command in a pane and (optionally) wait for it",
+	Use:   "run [--name n] [--wait] -- <cmd...>",
+	Short: "Spawn a command in a managed pane (non-blocking by default)",
 	RunE:  runStartWait,
 }
 
 func init() {
 	RunCmd.Flags().String("name", "", "Human label for the run (default: run ID)")
-	RunCmd.Flags().Bool("no-wait", false, "Return immediately after spawning")
+	RunCmd.Flags().Bool("wait", false, "Block until the pane exits (default: fire-and-forget)")
 
 	runStartCmd.Flags().String("name", "", "Human label for the run (default: run ID)")
-	runStartCmd.Flags().Bool("no-wait", false, "Return immediately after spawning")
+	runStartCmd.Flags().Bool("wait", false, "Block until the pane exits (default: fire-and-forget)")
 
 	RunCmd.AddCommand(runStartCmd)
 	RunCmd.AddCommand(runListCmd)
@@ -46,15 +48,19 @@ func runStartWait(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 	name, _ := cmd.Flags().GetString("name")
-	noWait, _ := cmd.Flags().GetBool("no-wait")
+	wait, _ := cmd.Flags().GetBool("wait")
 	cmdStr := strings.Join(args, " ")
 
-	r, err := run.Start(root, b, name, cmdStr, nil)
+	// Pass the caller's PATH into the spawned pane so tools managed by mise/nvm/pyenv
+	// are available even though the multiplexer shell doesn't source the user profile.
+	env := map[string]string{"PATH": os.Getenv("PATH")}
+
+	r, err := run.Start(root, b, name, cmdStr, env)
 	if err != nil {
 		output.PrintError(err, jsonFlag(cmd))
 		return nil
 	}
-	if !noWait {
+	if wait {
 		r, err = run.Wait(root, b, r.ID)
 		if err != nil {
 			output.PrintError(err, jsonFlag(cmd))
@@ -64,10 +70,10 @@ func runStartWait(cmd *cobra.Command, args []string) error {
 	return output.Print(r, jsonFlag(cmd))
 }
 
-// swarm run start (alias for the root command — spawn + optional wait)
+// swarm run start (alias for the root command — fire-and-forget by default)
 var runStartCmd = &cobra.Command{
-	Use:   "start [--name n] [--no-wait] -- <cmd...>",
-	Short: "Spawn a command in a pane and (optionally) wait for it",
+	Use:   "start [--name n] [--wait] -- <cmd...>",
+	Short: "Spawn a command in a managed pane (non-blocking by default)",
 	RunE:  runStartWait,
 }
 

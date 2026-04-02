@@ -33,7 +33,7 @@ func notSupported() error {
 func (g *GhosttyBackend) Name() string { return "ghostty" }
 
 // Spawn is not supported.
-func (g *GhosttyBackend) Spawn(name, cmd string, env map[string]string) (pane.PaneID, error) {
+func (g *GhosttyBackend) Spawn(name, cmd string, opts pane.SpawnOptions) (pane.PaneID, error) {
 	return "", notSupported()
 }
 
