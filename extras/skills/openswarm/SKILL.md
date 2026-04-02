@@ -14,83 +14,98 @@ swarm init          # create .swarm/ in project root (idempotent)
 swarm version       # verify install
 ```
 
-Pane/run commands require tmux, Zellij, or WezTerm running. The backend is auto-detected from `$TMUX`, `$ZELLIJ`, or `$WEZTERM_PANE`. Override with `$SWARM_BACKEND`.
+Pane/run commands require tmux, Zellij, or WezTerm. Backend is auto-detected from `$TMUX`, `$ZELLIJ`, or `$WEZTERM_PANE`. Override with `$SWARM_BACKEND`.
 
 ## Agents
 
 ```bash
-swarm agent register <name> --role <role>  # register yourself
-swarm agent list                       # list all agents
-swarm agent get <id>
-swarm agent deregister <id>
+swarm agent register <name> [--role <role>]  # register yourself (role defaults to "agent")
+swarm agent list
+swarm agent get <id-or-name>
+swarm agent deregister <id-or-name>
 ```
 
 ## Tasks
 
 ```bash
-swarm task list                        # see all tasks
-swarm task add "description"           # create a task
-swarm task assign <id> <agent>         # assign to an agent
-swarm task claim <id> --as <agent>     # claim a task yourself
-swarm task done <id>                   # mark complete
-swarm task fail <id>                   # mark failed
-swarm task block <id> --by <other-id>  # declare a dependency
-swarm task check                       # check task store integrity
-swarm task prompt                      # priming prompt for current task state
+swarm task list
+swarm task add "description"
+swarm task assign <id> <agent-id-or-name>
+swarm task claim <id> --as <agent>
+swarm task update <id> [--status <s>] [--assignee <a>]
+swarm task done <id>
+swarm task fail <id>
+swarm task cancel <id>
+swarm task block <id> --by <other-id>
+swarm task get <id>
+swarm task prompt          # agent-priming context for current tasks
+swarm task check           # integrity check
 ```
 
 ## Messaging
 
 ```bash
-swarm msg send <agent> --subject "subj" --body "text"  # send a message
-swarm msg inbox <agent>                # list messages
-swarm msg read <agent> <msg-id>        # read a message (marks it read)
-swarm msg reply <agent> <msg-id> --body "text"  # reply in thread
-swarm msg clear <agent>                # clear read messages from inbox
+swarm msg send <recipient> --subject "subj" --body "text"
+swarm msg inbox <agent>
+swarm msg read <agent> <msg-id>
+swarm msg reply <agent> <msg-id> --body "text"
+swarm msg watch <agent>    # block and stream new messages until Ctrl-C
+swarm msg clear <agent>    # remove read messages
 ```
 
 ## Panes & runs
 
 ```bash
-swarm pane spawn <name>                # spawn a terminal pane
+# Interactive panes — stay open after command exits
+swarm pane spawn <name> [cmd...] [--placement <p>]
 swarm pane list
-swarm pane send <pane-id> "command"    # send keystrokes to a pane
-swarm pane capture <pane-id>           # read pane output
+swarm pane send <pane-id> "text"
+swarm pane capture <pane-id>
 swarm pane close <pane-id>
 
-swarm run start [--name <name>] -- <cmd>       # spawn (non-blocking by default)
-swarm run start [--name <name>] --wait -- <cmd> # spawn and block until done
-swarm run wait <run-id>                # block until run finishes
+# Managed runs — tracked in runs.json
+swarm run [start] [--name <n>] [--placement <p>] -- <cmd...>   # fire-and-forget (default)
+swarm run [start] [--name <n>] [--placement <p>] --wait -- <cmd...>  # block until done
+swarm run wait <run-id>
 swarm run list
 swarm run logs <run-id>
 swarm run kill <run-id>
 ```
 
-`swarm run start` is **non-blocking by default** — it returns immediately after spawning.
-Use `--wait` to block until the pane exits, or `swarm run wait <id>` to join later.
+`--placement` options: `current_tab` (default), `new_tab`, `new_session`.  
+`new_tab` and `new_session` open in the **background** — focus stays on the current tab.  
+Run panes **close automatically** on exit. Interactive panes (`pane spawn`) stay open.
 
-The caller's `PATH` is automatically forwarded to the spawned pane, so tools managed
-by mise, nvm, pyenv, etc. are available without any manual setup.
+The caller's `PATH` is forwarded automatically, so mise/nvm/pyenv tools work without setup.
 
-Run panes **close automatically** when their command exits — no hanging terminal windows.
-Interactive panes created with `swarm pane spawn` are kept open.
+Signal completion from inside a run: print `<promise>COMPLETE</promise>`.
 
-Signal run completion from inside the pane by printing `<promise>COMPLETE</promise>`.
+### Config
+
+Set the default placement in `.swarm/config.toml`:
+
+```toml
+[pane]
+placement = "new_tab"   # or "current_tab" (default), "new_session"
+```
+
+Override per-invocation with `--placement`, or globally with `$SWARM_PANE_PLACEMENT`.
 
 ### Quoting tip — use script files for complex commands
 
-Long prompts with parens, quotes, or `&&` cause shell-parsing errors when passed as
-CLI args. Write the command to a `.sh` file and invoke it:
+Long prompts with parens, quotes, or `&&` cause shell-parsing errors as inline args.
+Write them to a file instead:
+
 ```bash
-# ✗ breaks — shell parses the parens before swarm sees them
+# ✗ breaks — shell parses parens before swarm sees them
 swarm run start -- pi --print "Research X (latest trends)"
 
-# ✓ works — no quoting issues, PATH already inherited
-cat > /tmp/my-task.sh << 'EOF'
+# ✓ works
+cat > /tmp/task.sh << 'EOF'
 #!/bin/sh
 pi --print "Research X (latest trends)"
 EOF
-swarm run start --name my-task -- sh /tmp/my-task.sh
+swarm run start --name my-task -- sh /tmp/task.sh
 ```
 
 ## Worktrees
@@ -98,18 +113,20 @@ swarm run start --name my-task -- sh /tmp/my-task.sh
 ```bash
 swarm worktree new --branch <branch> --agent <agent>
 swarm worktree list
+swarm worktree get <id>
 swarm worktree merge <id>
 swarm worktree clean <id>
+swarm worktree clean-all   # clean all merged/abandoned worktrees
 ```
 
 ## Status & events
 
 ```bash
 swarm status                           # agents / tasks / messages / runs at a glance
-swarm events tail                      # stream the live event log
+swarm prompt                           # full agent-priming context block
+swarm events tail                      # stream live event log
 swarm events tail --n 20               # last N events then exit
 swarm events tail --filter task        # filter by event type prefix
-swarm prompt                           # generate an agent-priming context block
 ```
 
 ## State layout
@@ -118,9 +135,11 @@ swarm prompt                           # generate an agent-priming context block
 .swarm/
 ├── config.toml
 ├── agents/registry.json
-├── messages/<agent-id>/inbox/<msg-id>.json
-├── tasks/tasks.json + .lock
+├── messages/<agent>/inbox/<msg-id>.json
+├── tasks/tasks.json
 ├── runs/runs.json
 ├── worktrees/worktrees.json
 └── events/events.jsonl
 ```
+
+`swarm msg`, `swarm task`, `swarm agent`, `swarm events`, and `swarm status` work without any multiplexer. Only `swarm pane` and `swarm run` require one.

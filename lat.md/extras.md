@@ -6,6 +6,12 @@ Supplementary integrations that live under `extras/` and make openswarm easier t
 
 `extras/skills/openswarm/SKILL.md` — teaches any SKILL.md-compatible agent the full `swarm` CLI. Works with Claude Code, pi, and others.
 
+## Config Example
+
+`extras/config.toml` — a fully-commented reference covering every config key.
+
+Copy to `.swarm/config.toml` (project) or `~/.config/swarm/config.toml` (global). Covers `team_name`, `default_agent`, `backend`, `poll_interval`, `[pane] placement`, and `[[agent]]` profiles.
+
 Follows progressive disclosure: agents load only the description at startup and read the full file when relevant. Covers command syntax, workflows, and the `.swarm/` state layout.
 
 > **Note on `msg` commands:** `msg send` requires `--subject` and `--body` flags (no positional text). `msg read` and `msg reply` both take `<agent> <msg-id>` — the agent argument is required for inbox routing.

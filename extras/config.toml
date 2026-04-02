@@ -1,0 +1,81 @@
+# openswarm project configuration
+# Place this file at .swarm/config.toml in your project root.
+# Global defaults go in ~/.config/swarm/config.toml (same format).
+# Priority: environment variables > project config > global config > built-in defaults.
+#
+# Run `swarm init` to create the .swarm/ directory if it doesn't exist yet.
+
+# ─── Identity ──────────────────────────────────────────────────────────────────
+
+# Human name for this team/project — shown in `swarm status` and `swarm prompt`.
+# Optional.
+team_name = "my-project"
+
+# Default agent name used when --as is omitted in task/message commands.
+# Also set via $SWARM_AGENT_ID.
+# Optional.
+default_agent = "coder"
+
+# ─── Multiplexer backend ───────────────────────────────────────────────────────
+
+# Which terminal multiplexer to use for pane and run commands.
+#   "auto"     — detect from environment ($TMUX / $ZELLIJ / $WEZTERM_PANE)  [default]
+#   "tmux"     — force tmux
+#   "zellij"   — force Zellij
+#   "wezterm"  — force WezTerm
+# Also set via $SWARM_BACKEND.
+backend = "auto"
+
+# How often backends poll for pane state changes (used by Subscribe and Wait).
+# Accepts Go duration strings: "100ms", "200ms", "1s".
+# Lower values = more responsive but more CPU. Default: "200ms".
+poll_interval = "200ms"
+
+# ─── Pane placement ────────────────────────────────────────────────────────────
+
+[pane]
+# Where new panes are opened by `swarm run` and `swarm pane spawn`.
+#   "current_tab"  — split pane in the active tab/window              [default]
+#   "new_tab"      — dedicated new tab (Zellij/WezTerm) or window (tmux)
+#                    Opens in the background — focus stays on current tab.
+#   "new_session"  — brand-new multiplexer session (fully isolated)
+# Override per-command with --placement, or globally with $SWARM_PANE_PLACEMENT.
+placement = "new_tab"
+
+# ─── Agent profiles ────────────────────────────────────────────────────────────
+# Define named agents for use with `swarm task assign` and the assign-task commands.
+# Each [[agent]] block describes how to launch that agent in a pane.
+#
+# Fields:
+#   name    — identifier used in task/message commands
+#   command — executable to run
+#   args    — extra arguments passed after the command
+#   [agent.env] — environment variables injected into the pane
+#                 (in addition to the inherited PATH)
+
+[[agent]]
+name    = "coder"
+command = "pi"
+args    = []
+
+# [agent.env]
+# ANTHROPIC_API_KEY = "sk-..."   # or inherit from environment
+
+[[agent]]
+name    = "reviewer"
+command = "claude"
+args    = ["--model", "claude-opus-4-5"]
+
+[[agent]]
+name    = "researcher"
+command = "pi"
+args    = ["--model", "claude-opus-4-5"]
+
+# Example: a custom shell script agent
+# [[agent]]
+# name    = "analyst"
+# command = "bash"
+# args    = [".swarm/agents/analyst.sh"]
+#
+# [agent.env]
+# OPENAI_API_KEY = "sk-..."

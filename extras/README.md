@@ -6,6 +6,10 @@ Supplementary integrations that make openswarm easier to use from a coding agent
 
 `skills/openswarm/SKILL.md` — a standard [agent skill](https://agentskills.io/what-are-skills) that teaches any compatible agent the full `swarm` CLI. Works with Claude Code, pi, and any other skill-compatible agent.
 
+## Config reference
+
+`config.toml` — a fully-commented example `.swarm/config.toml` covering every available option: backend selection, poll interval, pane placement, and agent profiles. Copy to `.swarm/config.toml` (project) or `~/.config/swarm/config.toml` (global).
+
 ## Coding agent integrations
 
 | Integration | Path | What it adds |
