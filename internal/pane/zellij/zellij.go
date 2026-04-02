@@ -78,9 +78,17 @@ func (b *ZellijBackend) spawnCurrentTab(name, fullCmd string, closeOnExit bool) 
 }
 
 // spawnNewTab creates a dedicated Zellij tab and a pane inside it.
+// The new tab opens in the background — focus is returned to the original tab
+// immediately after spawning so the user's workflow is not interrupted.
 // With closeOnExit=true, a cleanup trailer closes the tab when the command exits.
 func (b *ZellijBackend) spawnNewTab(name, fullCmd string, closeOnExit bool) (pane.PaneID, error) {
-	// Snapshot existing tab IDs so we can identify the new one.
+	// Remember which tab is currently active so we can restore focus after spawning.
+	originalTabID, err := activeTabID()
+	if err != nil {
+		return "", fmt.Errorf("zellij new_tab: get active tab: %w", err)
+	}
+
+	// Snapshot all existing tab IDs so we can identify the brand-new one.
 	tabsBefore, err := listTabIDs()
 	if err != nil {
 		return "", fmt.Errorf("zellij new_tab: list tabs: %w", err)
@@ -107,6 +115,10 @@ func (b *ZellijBackend) spawnNewTab(name, fullCmd string, closeOnExit bool) (pan
 	if err != nil {
 		return "", fmt.Errorf("zellij new-pane (new_tab): %w", err)
 	}
+
+	// Restore focus to the original tab — the new tab runs in the background.
+	_ = exec.Command("zellij", "action", "go-to-tab-by-id", fmt.Sprintf("%d", originalTabID)).Run()
+
 	id := strings.TrimSpace(string(out))
 	if id != "" {
 		return pane.PaneID(id), nil
@@ -172,6 +184,24 @@ type zellijTabJSON struct {
 	Name     string `json:"name"`
 	TabID    int    `json:"tab_id"`
 	Active   bool   `json:"active"`
+}
+
+// activeTabID returns the tab_id of the currently focused tab.
+func activeTabID() (int, error) {
+	out, err := exec.Command("zellij", "action", "list-tabs", "--json").Output()
+	if err != nil {
+		return 0, fmt.Errorf("list-tabs: %w", err)
+	}
+	var tabs []zellijTabJSON
+	if err := json.Unmarshal(out, &tabs); err != nil {
+		return 0, fmt.Errorf("list-tabs parse: %w", err)
+	}
+	for _, t := range tabs {
+		if t.Active {
+			return t.TabID, nil
+		}
+	}
+	return 0, fmt.Errorf("no active tab found")
 }
 
 // listTabIDs returns the set of current tab IDs in the active session.
